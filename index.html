@@ -1,10 +1,569 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-  <title>Precificação</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Precificação</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --primary-2: #1d4ed8;
+      --success: #15803d;
+      --warning: #b45309;
+      --danger: #b91c1c;
+      --success-bg: #dcfce7;
+      --warning-bg: #fef3c7;
+      --danger-bg: #fee2e2;
+      --border: #e5e7eb;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #eff6ff 0%, var(--bg) 100%);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #1d4ed8, #2563eb, #60a5fa);
+      color: white;
+      border-radius: 26px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+    }
+
+    .hero p {
+      margin: 0;
+      opacity: 0.92;
+      line-height: 1.5;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 20px;
+    }
+
+    .card {
+      grid-column: span 12;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h2 {
+      margin: 0 0 6px;
+      font-size: 22px;
+    }
+
+    .card p.section-desc {
+      margin: 0 0 20px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .span-7 { grid-column: span 7; }
+    .span-5 { grid-column: span 5; }
+    .span-6 { grid-column: span 6; }
+    .span-4 { grid-column: span 4; }
+    .span-3 { grid-column: span 3; }
+
+    .fields {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .fields-4 {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 14px;
+      font-size: 15px;
+      outline: none;
+      transition: 0.2s border-color, 0.2s box-shadow;
+      background: white;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .metric {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .metric .label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .metric .value {
+      font-size: 26px;
+      font-weight: 700;
+    }
+
+    .status-box {
+      margin-top: 18px;
+      border-radius: 18px;
+      padding: 18px;
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .status-box small {
+      display: block;
+      margin-top: 8px;
+      font-size: 13px;
+      font-weight: 400;
+      color: rgba(17, 24, 39, 0.8);
+    }
+
+    .success { background: var(--success-bg); color: var(--success); }
+    .warning { background: var(--warning-bg); color: var(--warning); }
+    .danger { background: var(--danger-bg); color: var(--danger); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    th { color: var(--muted); font-weight: 700; }
+
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover { background: var(--primary-2); }
+
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #dbeafe;
+      color: #1d4ed8;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    @media (max-width: 960px) {
+      .span-7, .span-5, .span-6, .span-4, .span-3 { grid-column: span 12; }
+      .fields, .summary, .fields-4 { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 26px; }
+    }
+  </style>
 </head>
 <body>
-  <h1>🚀 Sistema de Precificação</h1>
-  <p>Seu sistema está no ar!</p>
+  <div class="container">
+    <section class="hero">
+      <h1>Sistema de Precificação</h1>
+      <p>Versão inicial da sua interface. Preencha os dados do produto, ajuste as configurações e veja o preço sugerido, lucro líquido, payout e status do item em tempo real.</p>
+    </section>
+
+    <div class="grid">
+      <section class="card span-7">
+        <span class="tag">Precificação do produto</span>
+        <h2>Dados principais</h2>
+        <p class="section-desc">Preencha apenas o que for necessário. O restante será calculado automaticamente.</p>
+
+        <div class="fields">
+          <div class="field">
+            <label for="produto">Produto</label>
+            <input id="produto" type="text" placeholder="Ex.: Shampoo Premium" />
+          </div>
+          <div class="field">
+            <label for="custo">Custo (R$)</label>
+            <input id="custo" type="number" step="0.01" value="100" />
+          </div>
+
+          <div class="field">
+            <label for="precoManual">Preço manual (R$)</label>
+            <input id="precoManual" type="number" step="0.01" placeholder="Opcional" />
+            <div class="hint">Se preencher, ele substitui o preço sugerido.</div>
+          </div>
+          <div class="field">
+            <label for="lucroPadrao">Lucro padrão (% sobre custo)</label>
+            <input id="lucroPadrao" type="number" step="0.01" value="20" />
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <button class="btn-primary" id="salvarBtn">Salvar no histórico</button>
+          <button class="btn-secondary" id="limparBtn">Limpar campos</button>
+        </div>
+      </section>
+
+      <section class="card span-5">
+        <span class="tag">Resultado</span>
+        <h2>Resumo financeiro</h2>
+        <p class="section-desc">Baseado na sua lógica atual de planilha.</p>
+
+        <div class="summary">
+          <div class="metric">
+            <div class="label">Preço sugerido</div>
+            <div class="value" id="precoSugerido">R$ 0,00</div>
+          </div>
+          <div class="metric">
+            <div class="label">Preço final</div>
+            <div class="value" id="precoFinal">R$ 0,00</div>
+          </div>
+          <div class="metric">
+            <div class="label">Lucro líquido</div>
+            <div class="value" id="lucroLiquido">R$ 0,00</div>
+          </div>
+          <div class="metric">
+            <div class="label">Margem líquida</div>
+            <div class="value" id="margemLiquida">0,00%</div>
+          </div>
+          <div class="metric">
+            <div class="label">Payout total</div>
+            <div class="value" id="payoutTotal">R$ 0,00</div>
+          </div>
+          <div class="metric">
+            <div class="label">Payout %</div>
+            <div class="value" id="payoutPercent">0,00%</div>
+          </div>
+        </div>
+
+        <div id="statusBox" class="status-box success">
+          Saudável
+          <small>Produto dentro da margem e payout aceitáveis.</small>
+        </div>
+      </section>
+
+      <section class="card span-12">
+        <span class="tag">Configurações do modelo</span>
+        <h2>Parâmetros da operação</h2>
+        <p class="section-desc">Esses valores já vêm com base no seu Apps Script e podem ser ajustados livremente nesta primeira versão.</p>
+
+        <div class="fields-4">
+          <div class="field">
+            <label for="pontosPorReal">Pontos por real</label>
+            <input id="pontosPorReal" type="number" step="0.0001" value="0.30" />
+          </div>
+          <div class="field">
+            <label for="gateway">Gateway (%)</label>
+            <input id="gateway" type="number" step="0.01" value="4" />
+          </div>
+          <div class="field">
+            <label for="imposto">Imposto (%)</label>
+            <input id="imposto" type="number" step="0.01" value="12" />
+          </div>
+          <div class="field">
+            <label for="sistema">Sistema (% sobre líquido)</label>
+            <input id="sistema" type="number" step="0.01" value="5" />
+          </div>
+
+          <div class="field">
+            <label for="fundo">Fundo premiação (%)</label>
+            <input id="fundo" type="number" step="0.01" value="5" />
+          </div>
+          <div class="field">
+            <label for="n1">N1 (%)</label>
+            <input id="n1" type="number" step="0.01" value="5" />
+          </div>
+          <div class="field">
+            <label for="n2">N2 (%)</label>
+            <input id="n2" type="number" step="0.01" value="4" />
+          </div>
+          <div class="field">
+            <label for="n3">N3 (%)</label>
+            <input id="n3" type="number" step="0.01" value="4" />
+          </div>
+
+          <div class="field">
+            <label for="n4">N4 (%)</label>
+            <input id="n4" type="number" step="0.01" value="2" />
+          </div>
+          <div class="field">
+            <label for="n5">N5 (%)</label>
+            <input id="n5" type="number" step="0.01" value="2" />
+          </div>
+          <div class="field">
+            <label for="n6">N6 (%)</label>
+            <input id="n6" type="number" step="0.01" value="2" />
+          </div>
+          <div class="field">
+            <label for="n7">N7 (%)</label>
+            <input id="n7" type="number" step="0.01" value="1" />
+          </div>
+
+          <div class="field">
+            <label for="payoutMax">Payout máximo aceitável (%)</label>
+            <input id="payoutMax" type="number" step="0.01" value="45" />
+          </div>
+          <div class="field">
+            <label for="margemMin">Margem líquida mínima (%)</label>
+            <input id="margemMin" type="number" step="0.01" value="10" />
+          </div>
+        </div>
+      </section>
+
+      <section class="card span-6">
+        <span class="tag">Detalhamento</span>
+        <h2>Distribuição do produto</h2>
+        <table>
+          <tbody>
+            <tr><th>Pontos</th><td id="pontos">0,0000</td></tr>
+            <tr><th>Fundo premiação</th><td id="fundoValor">R$ 0,00</td></tr>
+            <tr><th>Cashback rede</th><td id="cashbackRede">R$ 0,00</td></tr>
+            <tr><th>N1</th><td id="n1Valor">R$ 0,00</td></tr>
+            <tr><th>N2</th><td id="n2Valor">R$ 0,00</td></tr>
+            <tr><th>N3</th><td id="n3Valor">R$ 0,00</td></tr>
+            <tr><th>N4</th><td id="n4Valor">R$ 0,00</td></tr>
+            <tr><th>N5</th><td id="n5Valor">R$ 0,00</td></tr>
+            <tr><th>N6</th><td id="n6Valor">R$ 0,00</td></tr>
+            <tr><th>N7</th><td id="n7Valor">R$ 0,00</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card span-6">
+        <span class="tag">Histórico local</span>
+        <h2>Últimas simulações</h2>
+        <p class="section-desc">Nesta primeira versão, o histórico fica salvo no próprio navegador.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Produto</th>
+              <th>Preço final</th>
+              <th>Lucro líquido</th>
+            </tr>
+          </thead>
+          <tbody id="historicoBody">
+            <tr>
+              <td colspan="3" style="color:#6b7280;">Nenhuma simulação salva ainda.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+    const percent = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const decimal4 = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+
+    const ids = [
+      'produto','custo','precoManual','lucroPadrao','pontosPorReal','gateway','imposto','sistema','fundo',
+      'n1','n2','n3','n4','n5','n6','n7','payoutMax','margemMin'
+    ];
+
+    const getNum = (id) => parseFloat(document.getElementById(id).value) || 0;
+    const getText = (id) => document.getElementById(id).value.trim();
+    const toRate = (value) => value / 100;
+
+    function calcular() {
+      const custo = getNum('custo');
+      const precoManual = getNum('precoManual');
+      const lucroPadrao = toRate(getNum('lucroPadrao'));
+      const pontosPorReal = getNum('pontosPorReal');
+      const gateway = toRate(getNum('gateway'));
+      const imposto = toRate(getNum('imposto'));
+      const sistema = toRate(getNum('sistema'));
+      const fundo = toRate(getNum('fundo'));
+      const n1 = toRate(getNum('n1'));
+      const n2 = toRate(getNum('n2'));
+      const n3 = toRate(getNum('n3'));
+      const n4 = toRate(getNum('n4'));
+      const n5 = toRate(getNum('n5'));
+      const n6 = toRate(getNum('n6'));
+      const n7 = toRate(getNum('n7'));
+      const payoutMax = toRate(getNum('payoutMax'));
+      const margemMin = toRate(getNum('margemMin'));
+
+      const cashbackTotal = n1 + n2 + n3 + n4 + n5 + n6 + n7;
+      const denominador = 1 - gateway - imposto - ((1 - gateway - imposto) * (cashbackTotal + fundo + sistema));
+      const precoSugerido = custo > 0 && denominador > 0 ? (custo * (1 + lucroPadrao)) / denominador : 0;
+      const precoFinal = precoManual > 0 ? precoManual : precoSugerido;
+      const liquidoBase = precoFinal * (1 - gateway - imposto);
+
+      const pontos = precoFinal > 0 ? precoFinal * pontosPorReal : 0;
+      const fundoValor = liquidoBase * fundo;
+      const cashbackRede = liquidoBase * cashbackTotal;
+      const sistemaValor = liquidoBase * sistema;
+
+      const n1Valor = liquidoBase * n1;
+      const n2Valor = liquidoBase * n2;
+      const n3Valor = liquidoBase * n3;
+      const n4Valor = liquidoBase * n4;
+      const n5Valor = liquidoBase * n5;
+      const n6Valor = liquidoBase * n6;
+      const n7Valor = liquidoBase * n7;
+
+      const lucroLiquido = precoFinal - custo - (precoFinal * gateway) - (precoFinal * imposto) - cashbackRede - fundoValor - sistemaValor;
+      const payoutTotal = fundoValor + cashbackRede + sistemaValor;
+      const payoutPercent = precoFinal > 0 ? payoutTotal / precoFinal : 0;
+      const margemLiquida = precoFinal > 0 ? lucroLiquido / precoFinal : 0;
+
+      let statusClasse = 'success';
+      let statusTitulo = 'Saudável';
+      let statusTexto = 'Produto dentro da margem e payout aceitáveis.';
+
+      if (lucroLiquido < 0 || payoutPercent > payoutMax) {
+        statusClasse = 'danger';
+        statusTitulo = 'Risco';
+        statusTexto = 'Preço com risco financeiro. Reveja payout, margem ou custos.';
+      } else if (payoutPercent > 0.35 || margemLiquida < margemMin) {
+        statusClasse = 'warning';
+        statusTitulo = 'Atenção';
+        statusTexto = 'Produto viável, mas precisa de atenção nos indicadores.';
+      }
+
+      document.getElementById('precoSugerido').textContent = currency.format(precoSugerido || 0);
+      document.getElementById('precoFinal').textContent = currency.format(precoFinal || 0);
+      document.getElementById('lucroLiquido').textContent = currency.format(lucroLiquido || 0);
+      document.getElementById('margemLiquida').textContent = percent.format((margemLiquida || 0) * 100) + '%';
+      document.getElementById('payoutTotal').textContent = currency.format(payoutTotal || 0);
+      document.getElementById('payoutPercent').textContent = percent.format((payoutPercent || 0) * 100) + '%';
+
+      document.getElementById('pontos').textContent = decimal4.format(pontos || 0);
+      document.getElementById('fundoValor').textContent = currency.format(fundoValor || 0);
+      document.getElementById('cashbackRede').textContent = currency.format(cashbackRede || 0);
+      document.getElementById('n1Valor').textContent = currency.format(n1Valor || 0);
+      document.getElementById('n2Valor').textContent = currency.format(n2Valor || 0);
+      document.getElementById('n3Valor').textContent = currency.format(n3Valor || 0);
+      document.getElementById('n4Valor').textContent = currency.format(n4Valor || 0);
+      document.getElementById('n5Valor').textContent = currency.format(n5Valor || 0);
+      document.getElementById('n6Valor').textContent = currency.format(n6Valor || 0);
+      document.getElementById('n7Valor').textContent = currency.format(n7Valor || 0);
+
+      const statusBox = document.getElementById('statusBox');
+      statusBox.className = 'status-box ' + statusClasse;
+      statusBox.innerHTML = `${statusTitulo}<small>${statusTexto}</small>`;
+
+      return {
+        produto: getText('produto') || 'Sem nome',
+        precoFinal,
+        lucroLiquido,
+      };
+    }
+
+    function carregarHistorico() {
+      const historico = JSON.parse(localStorage.getItem('historicoPrecificacao') || '[]');
+      const tbody = document.getElementById('historicoBody');
+
+      if (!historico.length) {
+        tbody.innerHTML = '<tr><td colspan="3" style="color:#6b7280;">Nenhuma simulação salva ainda.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = historico.slice().reverse().map(item => `
+        <tr>
+          <td>${item.produto}</td>
+          <td>${currency.format(item.precoFinal || 0)}</td>
+          <td>${currency.format(item.lucroLiquido || 0)}</td>
+        </tr>
+      `).join('');
+    }
+
+    document.getElementById('salvarBtn').addEventListener('click', () => {
+      const resultado = calcular();
+      const historico = JSON.parse(localStorage.getItem('historicoPrecificacao') || '[]');
+      historico.push(resultado);
+      localStorage.setItem('historicoPrecificacao', JSON.stringify(historico.slice(-10)));
+      carregarHistorico();
+      alert('Simulação salva no histórico local.');
+    });
+
+    document.getElementById('limparBtn').addEventListener('click', () => {
+      document.getElementById('produto').value = '';
+      document.getElementById('custo').value = '0';
+      document.getElementById('precoManual').value = '';
+      calcular();
+    });
+
+    ids.forEach(id => document.getElementById(id).addEventListener('input', calcular));
+
+    calcular();
+    carregarHistorico();
+  </script>
 </body>
 </html>
