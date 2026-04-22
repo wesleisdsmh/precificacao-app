@@ -6,18 +6,24 @@
   <title>Sistema de Precificação</title>
   <style>
     :root {
-      --bg: #f4f7fb;
+      --bg: #e5e7eb;
       --card: #ffffff;
       --text: #1f2937;
       --muted: #6b7280;
-      --primary: #2563eb;
-      --primary-2: #1d4ed8;
+
+      /* NOVA PALETA */
+      --primary: #f67900;
+      --primary-2: #d96500;
+      --secondary: #5815ae;
+
       --success: #15803d;
       --warning: #b45309;
       --danger: #b91c1c;
+
       --success-bg: #dcfce7;
       --warning-bg: #fef3c7;
       --danger-bg: #fee2e2;
+
       --border: #e5e7eb;
       --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
       --radius: 18px;
@@ -28,7 +34,7 @@
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
-      background: linear-gradient(180deg, #eff6ff 0%, var(--bg) 100%);
+      background: linear-gradient(180deg, #dbeafe 0%, #e5e7eb 100%);
       color: var(--text);
     }
 
@@ -39,7 +45,7 @@
     }
 
     .hero {
-      background: linear-gradient(135deg, #1d4ed8, #2563eb, #60a5fa);
+      background: linear-gradient(135deg, #5815ae, #f67900);
       color: white;
       border-radius: 26px;
       padding: 28px;
@@ -71,6 +77,23 @@
       border-radius: var(--radius);
       padding: 22px;
       box-shadow: var(--shadow);
+      transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    /* Bordas por status */
+    .success-border {
+      border: 2px solid #16a34a;
+      box-shadow: 0 0 0 3px rgba(22,163,74,0.15), var(--shadow);
+    }
+
+    .warning-border {
+      border: 2px solid #f67900;
+      box-shadow: 0 0 0 3px rgba(246,121,0,0.15), var(--shadow);
+    }
+
+    .danger-border {
+      border: 2px solid #dc2626;
+      box-shadow: 0 0 0 3px rgba(220,38,38,0.15), var(--shadow);
     }
 
     .card h2 {
@@ -141,10 +164,24 @@
     }
 
     .metric {
-      background: #f8fafc;
-      border: 1px solid var(--border);
+      background: #f1f5f9;
+      border: 1px solid #d1d5db;
       border-radius: 16px;
       padding: 16px;
+      transition: box-shadow 0.2s ease;
+    }
+
+    /* Glow leve nas métricas conforme status */
+    .success-border .metric {
+      box-shadow: 0 0 0 2px rgba(22,163,74,0.15) inset;
+    }
+
+    .warning-border .metric {
+      box-shadow: 0 0 0 2px rgba(246,121,0,0.15) inset;
+    }
+
+    .danger-border .metric {
+      box-shadow: 0 0 0 2px rgba(220,38,38,0.15) inset;
     }
 
     .metric .label {
@@ -164,19 +201,49 @@
       padding: 18px;
       font-weight: 700;
       font-size: 18px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+    }
+
+    .status-box:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.03);
     }
 
     .status-box small {
       display: block;
       margin-top: 8px;
       font-size: 13px;
-      font-weight: 400;
-      color: rgba(17, 24, 39, 0.8);
+      font-weight: 500;
+      opacity: 0.95;
     }
 
-    .success { background: var(--success-bg); color: var(--success); }
-    .warning { background: var(--warning-bg); color: var(--warning); }
-    .danger { background: var(--danger-bg); color: var(--danger); }
+    .success {
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      color: #ffffff;
+    }
+
+    .success small {
+      color: rgba(255, 255, 255, 0.92);
+    }
+
+    .warning {
+      background: linear-gradient(135deg, #f67900, #d97706);
+      color: #ffffff;
+    }
+
+    .warning small {
+      color: rgba(255, 255, 255, 0.92);
+    }
+
+    .danger {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      color: #ffffff;
+    }
+
+    .danger small {
+      color: rgba(255, 255, 255, 0.92);
+    }
 
     table {
       width: 100%;
@@ -210,11 +277,13 @@
     }
 
     .btn-primary {
-      background: var(--primary);
+      background: linear-gradient(135deg, #f67900, #5815ae);
       color: white;
     }
 
-    .btn-primary:hover { background: var(--primary-2); }
+    .btn-primary:hover { 
+      background: linear-gradient(135deg, #d96500, #4a1194);
+    }
 
     .btn-secondary {
       background: #e5e7eb;
@@ -223,8 +292,8 @@
 
     .tag {
       display: inline-block;
-      background: #dbeafe;
-      color: #1d4ed8;
+      background: linear-gradient(135deg, #5815ae, #f67900);
+      color: white;
       border-radius: 999px;
       padding: 7px 12px;
       font-size: 12px;
@@ -273,13 +342,11 @@
           </div>
         </div>
 
-        <div class="toolbar">
-          <button class="btn-primary" id="salvarBtn">Salvar no histórico</button>
-          <button class="btn-secondary" id="limparBtn">Limpar campos</button>
+        <div class="toolbar"><button class="btn-secondary" id="limparBtn">Limpar campos</button>
         </div>
       </section>
 
-      <section class="card span-5">
+      <section class="card span-5" id="resultadoCard">
         <span class="tag">Resultado</span>
         <h2>Resumo financeiro</h2>
         <p class="section-desc">Baseado na sua lógica atual de planilha.</p>
@@ -345,32 +412,32 @@
             <input id="fundo" type="number" step="0.01" value="5" />
           </div>
           <div class="field">
-            <label for="n1">N1 (%)</label>
+            <label for="n1">Nível 1 (%)</label>
             <input id="n1" type="number" step="0.01" value="5" />
           </div>
           <div class="field">
-            <label for="n2">N2 (%)</label>
+            <label for="n2">Nível 2 (%)</label>
             <input id="n2" type="number" step="0.01" value="4" />
           </div>
           <div class="field">
-            <label for="n3">N3 (%)</label>
+            <label for="n3">Nível 3 (%)</label>
             <input id="n3" type="number" step="0.01" value="4" />
           </div>
 
           <div class="field">
-            <label for="n4">N4 (%)</label>
+            <label for="n4">Nível 4 (%)</label>
             <input id="n4" type="number" step="0.01" value="2" />
           </div>
           <div class="field">
-            <label for="n5">N5 (%)</label>
+            <label for="n5">Nível 5 (%)</label>
             <input id="n5" type="number" step="0.01" value="2" />
           </div>
           <div class="field">
-            <label for="n6">N6 (%)</label>
+            <label for="n6">Nível 6 (%)</label>
             <input id="n6" type="number" step="0.01" value="2" />
           </div>
           <div class="field">
-            <label for="n7">N7 (%)</label>
+            <label for="n7">Nível 7 (%)</label>
             <input id="n7" type="number" step="0.01" value="1" />
           </div>
 
@@ -392,14 +459,14 @@
           <tbody>
             <tr><th>Pontos</th><td id="pontos">0,0000</td></tr>
             <tr><th>Fundo premiação</th><td id="fundoValor">R$ 0,00</td></tr>
-            <tr><th>Cashback rede</th><td id="cashbackRede">R$ 0,00</td></tr>
-            <tr><th>N1</th><td id="n1Valor">R$ 0,00</td></tr>
-            <tr><th>N2</th><td id="n2Valor">R$ 0,00</td></tr>
-            <tr><th>N3</th><td id="n3Valor">R$ 0,00</td></tr>
-            <tr><th>N4</th><td id="n4Valor">R$ 0,00</td></tr>
-            <tr><th>N5</th><td id="n5Valor">R$ 0,00</td></tr>
-            <tr><th>N6</th><td id="n6Valor">R$ 0,00</td></tr>
-            <tr><th>N7</th><td id="n7Valor">R$ 0,00</td></tr>
+            <tr><th>Bônus Unilevel</th><td id="cashbackRede">R$ 0,00</td></tr>
+            <tr><th>Nível 1</th><td id="n1Valor">R$ 0,00</td></tr>
+            <tr><th>Nível 2</th><td id="n2Valor">R$ 0,00</td></tr>
+            <tr><th>Nível 3</th><td id="n3Valor">R$ 0,00</td></tr>
+            <tr><th>Nível 4</th><td id="n4Valor">R$ 0,00</td></tr>
+            <tr><th>Nível 5</th><td id="n5Valor">R$ 0,00</td></tr>
+            <tr><th>Nível 6</th><td id="n6Valor">R$ 0,00</td></tr>
+            <tr><th>Nível 7</th><td id="n7Valor">R$ 0,00</td></tr>
           </tbody>
         </table>
       </section>
@@ -465,7 +532,9 @@
       const precoFinal = precoManual > 0 ? precoManual : precoSugerido;
       const liquidoBase = precoFinal * (1 - gateway - imposto);
 
-      const pontos = precoFinal > 0 ? precoFinal * pontosPorReal : 0;
+      // Pontos: arredonda 4 casas e depois força inteiro (sistema não aceita quebrado)
+      const pontosCalculado = precoFinal > 0 ? Math.round((precoFinal * pontosPorReal) * 10000) / 10000 : 0;
+      const pontos = Math.floor(pontosCalculado);
       const fundoValor = liquidoBase * fundo;
       const cashbackRede = liquidoBase * cashbackTotal;
       const sistemaValor = liquidoBase * sistema;
@@ -516,7 +585,11 @@
       document.getElementById('n7Valor').textContent = currency.format(n7Valor || 0);
 
       const statusBox = document.getElementById('statusBox');
+      const resultadoCard = document.getElementById('resultadoCard');
+
       statusBox.className = 'status-box ' + statusClasse;
+      resultadoCard.className = 'card span-5 ' + statusClasse + '-border';
+
       statusBox.innerHTML = `${statusTitulo}<small>${statusTexto}</small>`;
 
       return {
@@ -544,14 +617,30 @@
       `).join('');
     }
 
-    document.getElementById('salvarBtn').addEventListener('click', () => {
+    function salvarHistoricoAutomatico() {
       const resultado = calcular();
+      const produto = (resultado.produto || '').trim();
+
+      if (!produto || resultado.precoFinal <= 0) return;
+
       const historico = JSON.parse(localStorage.getItem('historicoPrecificacao') || '[]');
-      historico.push(resultado);
+      const ultimo = historico[historico.length - 1];
+
+      const igualAoUltimo = ultimo &&
+        ultimo.produto === resultado.produto &&
+        Math.abs((ultimo.precoFinal || 0) - (resultado.precoFinal || 0)) < 0.01 &&
+        Math.abs((ultimo.lucroLiquido || 0) - (resultado.lucroLiquido || 0)) < 0.01;
+
+      if (igualAoUltimo) return;
+
+      historico.push({
+        ...resultado,
+        atualizadoEm: new Date().toISOString()
+      });
+
       localStorage.setItem('historicoPrecificacao', JSON.stringify(historico.slice(-10)));
       carregarHistorico();
-      alert('Simulação salva no histórico local.');
-    });
+    }
 
     document.getElementById('limparBtn').addEventListener('click', () => {
       document.getElementById('produto').value = '';
@@ -560,7 +649,13 @@
       calcular();
     });
 
-    ids.forEach(id => document.getElementById(id).addEventListener('input', calcular));
+    let historicoTimeout;
+
+    ids.forEach(id => document.getElementById(id).addEventListener('input', () => {
+      calcular();
+      clearTimeout(historicoTimeout);
+      historicoTimeout = setTimeout(salvarHistoricoAutomatico, 700);
+    }));
 
     calcular();
     carregarHistorico();
