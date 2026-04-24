@@ -149,7 +149,7 @@
 
     input:focus {
       border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+      box-shadow: 0 0 0 4px rgba(246, 121, 0, 0.14);
     }
 
     .hint {
@@ -342,7 +342,8 @@
           </div>
         </div>
 
-        <div class="toolbar"><button class="btn-secondary" id="limparBtn">Limpar campos</button>
+        <div class="toolbar">
+          <button class="btn-secondary" id="limparBtn">Limpar campos</button>
         </div>
       </section>
 
@@ -457,7 +458,7 @@
         <h2>Distribuição do produto</h2>
         <table>
           <tbody>
-            <tr><th>Pontos</th><td id="pontos">0,0000</td></tr>
+            <tr><th>Pontos</th><td id="pontos">0</td></tr>
             <tr><th>Fundo premiação</th><td id="fundoValor">R$ 0,00</td></tr>
             <tr><th>Bônus Unilevel</th><td id="cashbackRede">R$ 0,00</td></tr>
             <tr><th>Nível 1</th><td id="n1Valor">R$ 0,00</td></tr>
@@ -472,9 +473,9 @@
       </section>
 
       <section class="card span-6">
-        <span class="tag">Histórico local</span>
+        <span class="tag">Histórico</span>
         <h2>Últimas simulações</h2>
-        <p class="section-desc">Nesta primeira versão, o histórico fica salvo no próprio navegador.</p>
+        <p class="section-desc">O histórico aparece aqui no navegador e também é enviado automaticamente para a planilha.</p>
         <table>
           <thead>
             <tr>
@@ -494,9 +495,11 @@
   </div>
 
   <script>
+    const WORKER_URL = "https://precificacao-api.wesleisdsmh.workers.dev";
+
     const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
     const percent = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    const decimal4 = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+    const inteiro = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
 
     const ids = [
       'produto','custo','precoManual','lucroPadrao','pontosPorReal','gateway','imposto','sistema','fundo',
@@ -526,17 +529,18 @@
       const payoutMax = toRate(getNum('payoutMax'));
       const margemMin = toRate(getNum('margemMin'));
 
-      const cashbackTotal = n1 + n2 + n3 + n4 + n5 + n6 + n7;
-      const denominador = 1 - gateway - imposto - ((1 - gateway - imposto) * (cashbackTotal + fundo + sistema));
+      const bonusUnilevelPercent = n1 + n2 + n3 + n4 + n5 + n6 + n7;
+      const denominador = 1 - gateway - imposto - ((1 - gateway - imposto) * (bonusUnilevelPercent + fundo + sistema));
       const precoSugerido = custo > 0 && denominador > 0 ? (custo * (1 + lucroPadrao)) / denominador : 0;
       const precoFinal = precoManual > 0 ? precoManual : precoSugerido;
       const liquidoBase = precoFinal * (1 - gateway - imposto);
 
-      // Pontos: arredonda 4 casas e depois força inteiro (sistema não aceita quebrado)
+      // Pontos: primeiro arredonda 4 casas, depois força inteiro porque o sistema não aceita quebrado.
       const pontosCalculado = precoFinal > 0 ? Math.round((precoFinal * pontosPorReal) * 10000) / 10000 : 0;
       const pontos = Math.floor(pontosCalculado);
+
       const fundoValor = liquidoBase * fundo;
-      const cashbackRede = liquidoBase * cashbackTotal;
+      const bonusUnilevel = liquidoBase * bonusUnilevelPercent;
       const sistemaValor = liquidoBase * sistema;
 
       const n1Valor = liquidoBase * n1;
@@ -547,8 +551,8 @@
       const n6Valor = liquidoBase * n6;
       const n7Valor = liquidoBase * n7;
 
-      const lucroLiquido = precoFinal - custo - (precoFinal * gateway) - (precoFinal * imposto) - cashbackRede - fundoValor - sistemaValor;
-      const payoutTotal = fundoValor + cashbackRede + sistemaValor;
+      const lucroLiquido = precoFinal - custo - (precoFinal * gateway) - (precoFinal * imposto) - bonusUnilevel - fundoValor - sistemaValor;
+      const payoutTotal = fundoValor + bonusUnilevel + sistemaValor;
       const payoutPercent = precoFinal > 0 ? payoutTotal / precoFinal : 0;
       const margemLiquida = precoFinal > 0 ? lucroLiquido / precoFinal : 0;
 
@@ -573,9 +577,9 @@
       document.getElementById('payoutTotal').textContent = currency.format(payoutTotal || 0);
       document.getElementById('payoutPercent').textContent = percent.format((payoutPercent || 0) * 100) + '%';
 
-      document.getElementById('pontos').textContent = decimal4.format(pontos || 0);
+      document.getElementById('pontos').textContent = inteiro.format(pontos || 0);
       document.getElementById('fundoValor').textContent = currency.format(fundoValor || 0);
-      document.getElementById('cashbackRede').textContent = currency.format(cashbackRede || 0);
+      document.getElementById('cashbackRede').textContent = currency.format(bonusUnilevel || 0);
       document.getElementById('n1Valor').textContent = currency.format(n1Valor || 0);
       document.getElementById('n2Valor').textContent = currency.format(n2Valor || 0);
       document.getElementById('n3Valor').textContent = currency.format(n3Valor || 0);
@@ -589,13 +593,28 @@
 
       statusBox.className = 'status-box ' + statusClasse;
       resultadoCard.className = 'card span-5 ' + statusClasse + '-border';
-
       statusBox.innerHTML = `${statusTitulo}<small>${statusTexto}</small>`;
 
       return {
         produto: getText('produto') || 'Sem nome',
+        custo,
+        precoManual: document.getElementById('precoManual').value === '' ? '' : precoManual,
+        precoSugerido,
         precoFinal,
         lucroLiquido,
+        margemLiquida,
+        payoutTotal,
+        payoutPercent,
+        pontos,
+        bonusUnilevel,
+        n1: n1Valor,
+        n2: n2Valor,
+        n3: n3Valor,
+        n4: n4Valor,
+        n5: n5Valor,
+        n6: n6Valor,
+        n7: n7Valor,
+        status: statusTitulo
       };
     }
 
@@ -617,11 +636,27 @@
       `).join('');
     }
 
+    async function enviarParaPlanilha(payload) {
+      try {
+        const response = await fetch(WORKER_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          console.error('Erro ao enviar para a planilha:', await response.text());
+        }
+      } catch (error) {
+        console.error('Falha ao conectar com o Worker:', error);
+      }
+    }
+
     function salvarHistoricoAutomatico() {
       const resultado = calcular();
       const produto = (resultado.produto || '').trim();
 
-      if (!produto || resultado.precoFinal <= 0) return;
+      if (!produto || produto === 'Sem nome' || resultado.precoFinal <= 0) return;
 
       const historico = JSON.parse(localStorage.getItem('historicoPrecificacao') || '[]');
       const ultimo = historico[historico.length - 1];
@@ -629,17 +664,20 @@
       const igualAoUltimo = ultimo &&
         ultimo.produto === resultado.produto &&
         Math.abs((ultimo.precoFinal || 0) - (resultado.precoFinal || 0)) < 0.01 &&
-        Math.abs((ultimo.lucroLiquido || 0) - (resultado.lucroLiquido || 0)) < 0.01;
+        Math.abs((ultimo.lucroLiquido || 0) - (resultado.lucroLiquido || 0)) < 0.01 &&
+        Math.abs((ultimo.pontos || 0) - (resultado.pontos || 0)) < 1;
 
       if (igualAoUltimo) return;
 
-      historico.push({
+      const item = {
         ...resultado,
         atualizadoEm: new Date().toISOString()
-      });
+      };
 
+      historico.push(item);
       localStorage.setItem('historicoPrecificacao', JSON.stringify(historico.slice(-10)));
       carregarHistorico();
+      enviarParaPlanilha(item);
     }
 
     document.getElementById('limparBtn').addEventListener('click', () => {
@@ -654,7 +692,7 @@
     ids.forEach(id => document.getElementById(id).addEventListener('input', () => {
       calcular();
       clearTimeout(historicoTimeout);
-      historicoTimeout = setTimeout(salvarHistoricoAutomatico, 700);
+      historicoTimeout = setTimeout(salvarHistoricoAutomatico, 900);
     }));
 
     calcular();
