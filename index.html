@@ -1,3 +1,8 @@
+# 1) index.html completo ajustado
+
+Substitua todo o conteúdo do seu `index.html` por este código:
+
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -10,20 +15,12 @@
       --card: #ffffff;
       --text: #1f2937;
       --muted: #6b7280;
-
-      /* NOVA PALETA */
       --primary: #f67900;
       --primary-2: #d96500;
       --secondary: #5815ae;
-
       --success: #15803d;
       --warning: #b45309;
       --danger: #b91c1c;
-
-      --success-bg: #dcfce7;
-      --warning-bg: #fef3c7;
-      --danger-bg: #fee2e2;
-
       --border: #e5e7eb;
       --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
       --radius: 18px;
@@ -53,16 +50,8 @@
       margin-bottom: 24px;
     }
 
-    .hero h1 {
-      margin: 0 0 8px;
-      font-size: 32px;
-    }
-
-    .hero p {
-      margin: 0;
-      opacity: 0.92;
-      line-height: 1.5;
-    }
+    .hero h1 { margin: 0 0 8px; font-size: 32px; }
+    .hero p { margin: 0; opacity: 0.92; line-height: 1.5; }
 
     .grid {
       display: grid;
@@ -80,7 +69,6 @@
       transition: box-shadow 0.2s ease, border-color 0.2s ease;
     }
 
-    /* Bordas por status */
     .success-border {
       border: 2px solid #16a34a;
       box-shadow: 0 0 0 3px rgba(22,163,74,0.15), var(--shadow);
@@ -96,22 +84,13 @@
       box-shadow: 0 0 0 3px rgba(220,38,38,0.15), var(--shadow);
     }
 
-    .card h2 {
-      margin: 0 0 6px;
-      font-size: 22px;
-    }
-
-    .card p.section-desc {
-      margin: 0 0 20px;
-      color: var(--muted);
-      font-size: 14px;
-    }
+    .card h2 { margin: 0 0 6px; font-size: 22px; }
+    .card p.section-desc { margin: 0 0 20px; color: var(--muted); font-size: 14px; }
 
     .span-7 { grid-column: span 7; }
     .span-5 { grid-column: span 5; }
     .span-6 { grid-column: span 6; }
-    .span-4 { grid-column: span 4; }
-    .span-3 { grid-column: span 3; }
+    .span-12 { grid-column: span 12; }
 
     .fields {
       display: grid;
@@ -125,16 +104,8 @@
       gap: 12px;
     }
 
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    label {
-      font-size: 14px;
-      font-weight: 700;
-    }
+    .field { display: flex; flex-direction: column; gap: 8px; }
+    label { font-size: 14px; font-weight: 700; }
 
     input {
       width: 100%;
@@ -152,10 +123,7 @@
       box-shadow: 0 0 0 4px rgba(246, 121, 0, 0.14);
     }
 
-    .hint {
-      font-size: 12px;
-      color: var(--muted);
-    }
+    .hint { font-size: 12px; color: var(--muted); }
 
     .summary {
       display: grid;
@@ -171,29 +139,12 @@
       transition: box-shadow 0.2s ease;
     }
 
-    /* Glow leve nas métricas conforme status */
-    .success-border .metric {
-      box-shadow: 0 0 0 2px rgba(22,163,74,0.15) inset;
-    }
+    .success-border .metric { box-shadow: 0 0 0 2px rgba(22,163,74,0.15) inset; }
+    .warning-border .metric { box-shadow: 0 0 0 2px rgba(246,121,0,0.15) inset; }
+    .danger-border .metric { box-shadow: 0 0 0 2px rgba(220,38,38,0.15) inset; }
 
-    .warning-border .metric {
-      box-shadow: 0 0 0 2px rgba(246,121,0,0.15) inset;
-    }
-
-    .danger-border .metric {
-      box-shadow: 0 0 0 2px rgba(220,38,38,0.15) inset;
-    }
-
-    .metric .label {
-      font-size: 13px;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-
-    .metric .value {
-      font-size: 26px;
-      font-weight: 700;
-    }
+    .metric .label { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+    .metric .value { font-size: 26px; font-weight: 700; }
 
     .status-box {
       margin-top: 18px;
@@ -205,67 +156,19 @@
       box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
     }
 
-    .status-box:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.03);
-    }
+    .status-box:hover { transform: translateY(-1px); filter: brightness(1.03); }
+    .status-box small { display: block; margin-top: 8px; font-size: 13px; font-weight: 500; opacity: 0.95; }
 
-    .status-box small {
-      display: block;
-      margin-top: 8px;
-      font-size: 13px;
-      font-weight: 500;
-      opacity: 0.95;
-    }
+    .success { background: linear-gradient(135deg, #16a34a, #15803d); color: #ffffff; }
+    .warning { background: linear-gradient(135deg, #f67900, #d97706); color: #ffffff; }
+    .danger { background: linear-gradient(135deg, #dc2626, #b91c1c); color: #ffffff; }
+    .success small, .warning small, .danger small { color: rgba(255, 255, 255, 0.92); }
 
-    .success {
-      background: linear-gradient(135deg, #16a34a, #15803d);
-      color: #ffffff;
-    }
-
-    .success small {
-      color: rgba(255, 255, 255, 0.92);
-    }
-
-    .warning {
-      background: linear-gradient(135deg, #f67900, #d97706);
-      color: #ffffff;
-    }
-
-    .warning small {
-      color: rgba(255, 255, 255, 0.92);
-    }
-
-    .danger {
-      background: linear-gradient(135deg, #dc2626, #b91c1c);
-      color: #ffffff;
-    }
-
-    .danger small {
-      color: rgba(255, 255, 255, 0.92);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-
-    th, td {
-      text-align: left;
-      padding: 12px 10px;
-      border-bottom: 1px solid var(--border);
-      font-size: 14px;
-    }
-
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--border); font-size: 14px; }
     th { color: var(--muted); font-weight: 700; }
 
-    .toolbar {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-top: 20px;
-    }
+    .toolbar { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
 
     button {
       border: 0;
@@ -276,19 +179,9 @@
       cursor: pointer;
     }
 
-    .btn-primary {
-      background: linear-gradient(135deg, #f67900, #5815ae);
-      color: white;
-    }
-
-    .btn-primary:hover { 
-      background: linear-gradient(135deg, #d96500, #4a1194);
-    }
-
-    .btn-secondary {
-      background: #e5e7eb;
-      color: #111827;
-    }
+    .btn-primary { background: linear-gradient(135deg, #f67900, #5815ae); color: white; }
+    .btn-primary:hover { background: linear-gradient(135deg, #d96500, #4a1194); }
+    .btn-secondary { background: #e5e7eb; color: #111827; }
 
     .tag {
       display: inline-block;
@@ -302,7 +195,7 @@
     }
 
     @media (max-width: 960px) {
-      .span-7, .span-5, .span-6, .span-4, .span-3 { grid-column: span 12; }
+      .span-7, .span-5, .span-6, .span-12 { grid-column: span 12; }
       .fields, .summary, .fields-4 { grid-template-columns: 1fr; }
       .hero h1 { font-size: 26px; }
     }
@@ -312,14 +205,14 @@
   <div class="container">
     <section class="hero">
       <h1>Sistema de Precificação</h1>
-      <p>Versão inicial da sua interface. Preencha os dados do produto, ajuste as configurações e veja o preço sugerido, lucro líquido, payout e status do item em tempo real.</p>
+      <p>Preencha os dados do produto, confira a viabilidade e clique em Salvar produto para gravar na aba Produtos e no Histórico da planilha.</p>
     </section>
 
     <div class="grid">
       <section class="card span-7">
         <span class="tag">Precificação do produto</span>
         <h2>Dados principais</h2>
-        <p class="section-desc">Preencha apenas o que for necessário. O restante será calculado automaticamente.</p>
+        <p class="section-desc">Preencha os dados e salve apenas quando quiser registrar o produto na planilha.</p>
 
         <div class="fields">
           <div class="field">
@@ -330,7 +223,6 @@
             <label for="custo">Custo (R$)</label>
             <input id="custo" type="number" step="0.01" value="100" />
           </div>
-
           <div class="field">
             <label for="precoManual">Preço manual (R$)</label>
             <input id="precoManual" type="number" step="0.01" placeholder="Opcional" />
@@ -343,6 +235,7 @@
         </div>
 
         <div class="toolbar">
+          <button class="btn-primary" id="salvarProdutoBtn">Salvar produto</button>
           <button class="btn-secondary" id="limparBtn">Limpar campos</button>
         </div>
       </section>
@@ -353,30 +246,12 @@
         <p class="section-desc">Baseado na sua lógica atual de planilha.</p>
 
         <div class="summary">
-          <div class="metric">
-            <div class="label">Preço sugerido</div>
-            <div class="value" id="precoSugerido">R$ 0,00</div>
-          </div>
-          <div class="metric">
-            <div class="label">Preço final</div>
-            <div class="value" id="precoFinal">R$ 0,00</div>
-          </div>
-          <div class="metric">
-            <div class="label">Lucro líquido</div>
-            <div class="value" id="lucroLiquido">R$ 0,00</div>
-          </div>
-          <div class="metric">
-            <div class="label">Margem líquida</div>
-            <div class="value" id="margemLiquida">0,00%</div>
-          </div>
-          <div class="metric">
-            <div class="label">Payout total</div>
-            <div class="value" id="payoutTotal">R$ 0,00</div>
-          </div>
-          <div class="metric">
-            <div class="label">Payout %</div>
-            <div class="value" id="payoutPercent">0,00%</div>
-          </div>
+          <div class="metric"><div class="label">Preço sugerido</div><div class="value" id="precoSugerido">R$ 0,00</div></div>
+          <div class="metric"><div class="label">Preço final</div><div class="value" id="precoFinal">R$ 0,00</div></div>
+          <div class="metric"><div class="label">Lucro líquido</div><div class="value" id="lucroLiquido">R$ 0,00</div></div>
+          <div class="metric"><div class="label">Margem líquida</div><div class="value" id="margemLiquida">0,00%</div></div>
+          <div class="metric"><div class="label">Payout total</div><div class="value" id="payoutTotal">R$ 0,00</div></div>
+          <div class="metric"><div class="label">Payout %</div><div class="value" id="payoutPercent">0,00%</div></div>
         </div>
 
         <div id="statusBox" class="status-box success">
@@ -388,68 +263,23 @@
       <section class="card span-12">
         <span class="tag">Configurações do modelo</span>
         <h2>Parâmetros da operação</h2>
-        <p class="section-desc">Esses valores já vêm com base no seu Apps Script e podem ser ajustados livremente nesta primeira versão.</p>
+        <p class="section-desc">Esses valores podem ser ajustados antes de salvar o produto.</p>
 
         <div class="fields-4">
-          <div class="field">
-            <label for="pontosPorReal">Pontos por real</label>
-            <input id="pontosPorReal" type="number" step="0.0001" value="0.30" />
-          </div>
-          <div class="field">
-            <label for="gateway">Gateway (%)</label>
-            <input id="gateway" type="number" step="0.01" value="4" />
-          </div>
-          <div class="field">
-            <label for="imposto">Imposto (%)</label>
-            <input id="imposto" type="number" step="0.01" value="12" />
-          </div>
-          <div class="field">
-            <label for="sistema">Sistema (% sobre líquido)</label>
-            <input id="sistema" type="number" step="0.01" value="5" />
-          </div>
-
-          <div class="field">
-            <label for="fundo">Fundo premiação (%)</label>
-            <input id="fundo" type="number" step="0.01" value="5" />
-          </div>
-          <div class="field">
-            <label for="n1">Nível 1 (%)</label>
-            <input id="n1" type="number" step="0.01" value="5" />
-          </div>
-          <div class="field">
-            <label for="n2">Nível 2 (%)</label>
-            <input id="n2" type="number" step="0.01" value="4" />
-          </div>
-          <div class="field">
-            <label for="n3">Nível 3 (%)</label>
-            <input id="n3" type="number" step="0.01" value="4" />
-          </div>
-
-          <div class="field">
-            <label for="n4">Nível 4 (%)</label>
-            <input id="n4" type="number" step="0.01" value="2" />
-          </div>
-          <div class="field">
-            <label for="n5">Nível 5 (%)</label>
-            <input id="n5" type="number" step="0.01" value="2" />
-          </div>
-          <div class="field">
-            <label for="n6">Nível 6 (%)</label>
-            <input id="n6" type="number" step="0.01" value="2" />
-          </div>
-          <div class="field">
-            <label for="n7">Nível 7 (%)</label>
-            <input id="n7" type="number" step="0.01" value="1" />
-          </div>
-
-          <div class="field">
-            <label for="payoutMax">Payout máximo aceitável (%)</label>
-            <input id="payoutMax" type="number" step="0.01" value="45" />
-          </div>
-          <div class="field">
-            <label for="margemMin">Margem líquida mínima (%)</label>
-            <input id="margemMin" type="number" step="0.01" value="10" />
-          </div>
+          <div class="field"><label for="pontosPorReal">Pontos por real</label><input id="pontosPorReal" type="number" step="0.0001" value="0.30" /></div>
+          <div class="field"><label for="gateway">Gateway (%)</label><input id="gateway" type="number" step="0.01" value="4" /></div>
+          <div class="field"><label for="imposto">Imposto (%)</label><input id="imposto" type="number" step="0.01" value="12" /></div>
+          <div class="field"><label for="sistema">Sistema (% sobre líquido)</label><input id="sistema" type="number" step="0.01" value="5" /></div>
+          <div class="field"><label for="fundo">Fundo premiação (%)</label><input id="fundo" type="number" step="0.01" value="5" /></div>
+          <div class="field"><label for="n1">Nível 1 (%)</label><input id="n1" type="number" step="0.01" value="5" /></div>
+          <div class="field"><label for="n2">Nível 2 (%)</label><input id="n2" type="number" step="0.01" value="4" /></div>
+          <div class="field"><label for="n3">Nível 3 (%)</label><input id="n3" type="number" step="0.01" value="4" /></div>
+          <div class="field"><label for="n4">Nível 4 (%)</label><input id="n4" type="number" step="0.01" value="2" /></div>
+          <div class="field"><label for="n5">Nível 5 (%)</label><input id="n5" type="number" step="0.01" value="2" /></div>
+          <div class="field"><label for="n6">Nível 6 (%)</label><input id="n6" type="number" step="0.01" value="2" /></div>
+          <div class="field"><label for="n7">Nível 7 (%)</label><input id="n7" type="number" step="0.01" value="1" /></div>
+          <div class="field"><label for="payoutMax">Payout máximo aceitável (%)</label><input id="payoutMax" type="number" step="0.01" value="45" /></div>
+          <div class="field"><label for="margemMin">Margem líquida mínima (%)</label><input id="margemMin" type="number" step="0.01" value="10" /></div>
         </div>
       </section>
 
@@ -460,7 +290,7 @@
           <tbody>
             <tr><th>Pontos</th><td id="pontos">0</td></tr>
             <tr><th>Fundo premiação</th><td id="fundoValor">R$ 0,00</td></tr>
-            <tr><th>Bônus Unilevel</th><td id="cashbackRede">R$ 0,00</td></tr>
+            <tr><th>Bônus Unilevel</th><td id="bonusUnilevelValor">R$ 0,00</td></tr>
             <tr><th>Nível 1</th><td id="n1Valor">R$ 0,00</td></tr>
             <tr><th>Nível 2</th><td id="n2Valor">R$ 0,00</td></tr>
             <tr><th>Nível 3</th><td id="n3Valor">R$ 0,00</td></tr>
@@ -474,21 +304,11 @@
 
       <section class="card span-6">
         <span class="tag">Histórico</span>
-        <h2>Últimas simulações</h2>
-        <p class="section-desc">O histórico aparece aqui no navegador e também é enviado automaticamente para a planilha.</p>
+        <h2>Últimos produtos salvos</h2>
+        <p class="section-desc">Mostra os produtos salvos nesta sessão. A gravação real fica na planilha.</p>
         <table>
-          <thead>
-            <tr>
-              <th>Produto</th>
-              <th>Preço final</th>
-              <th>Lucro líquido</th>
-            </tr>
-          </thead>
-          <tbody id="historicoBody">
-            <tr>
-              <td colspan="3" style="color:#6b7280;">Nenhuma simulação salva ainda.</td>
-            </tr>
-          </tbody>
+          <thead><tr><th>Produto</th><th>Preço final</th><th>Lucro líquido</th></tr></thead>
+          <tbody id="historicoBody"><tr><td colspan="3" style="color:#6b7280;">Nenhum produto salvo ainda.</td></tr></tbody>
         </table>
       </section>
     </div>
@@ -535,7 +355,6 @@
       const precoFinal = precoManual > 0 ? precoManual : precoSugerido;
       const liquidoBase = precoFinal * (1 - gateway - imposto);
 
-      // Pontos: primeiro arredonda 4 casas, depois força inteiro porque o sistema não aceita quebrado.
       const pontosCalculado = precoFinal > 0 ? Math.round((precoFinal * pontosPorReal) * 10000) / 10000 : 0;
       const pontos = Math.floor(pontosCalculado);
 
@@ -551,6 +370,7 @@
       const n6Valor = liquidoBase * n6;
       const n7Valor = liquidoBase * n7;
 
+      const margemSobrePreco = precoFinal > 0 ? (precoFinal - custo) / precoFinal : 0;
       const lucroLiquido = precoFinal - custo - (precoFinal * gateway) - (precoFinal * imposto) - bonusUnilevel - fundoValor - sistemaValor;
       const payoutTotal = fundoValor + bonusUnilevel + sistemaValor;
       const payoutPercent = precoFinal > 0 ? payoutTotal / precoFinal : 0;
@@ -576,10 +396,9 @@
       document.getElementById('margemLiquida').textContent = percent.format((margemLiquida || 0) * 100) + '%';
       document.getElementById('payoutTotal').textContent = currency.format(payoutTotal || 0);
       document.getElementById('payoutPercent').textContent = percent.format((payoutPercent || 0) * 100) + '%';
-
       document.getElementById('pontos').textContent = inteiro.format(pontos || 0);
       document.getElementById('fundoValor').textContent = currency.format(fundoValor || 0);
-      document.getElementById('cashbackRede').textContent = currency.format(bonusUnilevel || 0);
+      document.getElementById('bonusUnilevelValor').textContent = currency.format(bonusUnilevel || 0);
       document.getElementById('n1Valor').textContent = currency.format(n1Valor || 0);
       document.getElementById('n2Valor').textContent = currency.format(n2Valor || 0);
       document.getElementById('n3Valor').textContent = currency.format(n3Valor || 0);
@@ -590,22 +409,22 @@
 
       const statusBox = document.getElementById('statusBox');
       const resultadoCard = document.getElementById('resultadoCard');
-
       statusBox.className = 'status-box ' + statusClasse;
       resultadoCard.className = 'card span-5 ' + statusClasse + '-border';
       statusBox.innerHTML = `${statusTitulo}<small>${statusTexto}</small>`;
 
       return {
+        destino: 'ProdutosEHistorico',
         produto: getText('produto') || 'Sem nome',
         custo,
         precoManual: document.getElementById('precoManual').value === '' ? '' : precoManual,
         precoSugerido,
         precoFinal,
+        margemSobrePreco,
         lucroLiquido,
-        margemLiquida,
         payoutTotal,
-        payoutPercent,
         pontos,
+        fundoValor,
         bonusUnilevel,
         n1: n1Valor,
         n2: n2Valor,
@@ -614,6 +433,8 @@
         n5: n5Valor,
         n6: n6Valor,
         n7: n7Valor,
+        payoutPercent,
+        margemLiquida,
         status: statusTitulo
       };
     }
@@ -621,12 +442,10 @@
     function carregarHistorico() {
       const historico = JSON.parse(localStorage.getItem('historicoPrecificacao') || '[]');
       const tbody = document.getElementById('historicoBody');
-
       if (!historico.length) {
-        tbody.innerHTML = '<tr><td colspan="3" style="color:#6b7280;">Nenhuma simulação salva ainda.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" style="color:#6b7280;">Nenhum produto salvo ainda.</td></tr>';
         return;
       }
-
       tbody.innerHTML = historico.slice().reverse().map(item => `
         <tr>
           <td>${item.produto}</td>
@@ -637,48 +456,49 @@
     }
 
     async function enviarParaPlanilha(payload) {
-      try {
-        const response = await fetch(WORKER_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
+      const response = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
-        if (!response.ok) {
-          console.error('Erro ao enviar para a planilha:', await response.text());
-        }
-      } catch (error) {
-        console.error('Falha ao conectar com o Worker:', error);
+      if (!response.ok) {
+        throw new Error(await response.text());
       }
+
+      return response.json().catch(() => ({ ok: true }));
     }
 
-    function salvarHistoricoAutomatico() {
-      const resultado = calcular();
-      const produto = (resultado.produto || '').trim();
+    document.getElementById('salvarProdutoBtn').addEventListener('click', async () => {
+      const produto = calcular();
 
-      if (!produto || produto === 'Sem nome' || resultado.precoFinal <= 0) return;
+      if (!produto.produto || produto.produto === 'Sem nome' || produto.precoFinal <= 0) {
+        alert('Preencha o nome do produto e o custo antes de salvar.');
+        return;
+      }
 
-      const historico = JSON.parse(localStorage.getItem('historicoPrecificacao') || '[]');
-      const ultimo = historico[historico.length - 1];
+      const btn = document.getElementById('salvarProdutoBtn');
+      const textoOriginal = btn.textContent;
+      btn.textContent = 'Salvando...';
+      btn.disabled = true;
 
-      const igualAoUltimo = ultimo &&
-        ultimo.produto === resultado.produto &&
-        Math.abs((ultimo.precoFinal || 0) - (resultado.precoFinal || 0)) < 0.01 &&
-        Math.abs((ultimo.lucroLiquido || 0) - (resultado.lucroLiquido || 0)) < 0.01 &&
-        Math.abs((ultimo.pontos || 0) - (resultado.pontos || 0)) < 1;
+      try {
+        await enviarParaPlanilha(produto);
 
-      if (igualAoUltimo) return;
+        const historico = JSON.parse(localStorage.getItem('historicoPrecificacao') || '[]');
+        historico.push({ ...produto, atualizadoEm: new Date().toISOString() });
+        localStorage.setItem('historicoPrecificacao', JSON.stringify(historico.slice(-10)));
+        carregarHistorico();
 
-      const item = {
-        ...resultado,
-        atualizadoEm: new Date().toISOString()
-      };
-
-      historico.push(item);
-      localStorage.setItem('historicoPrecificacao', JSON.stringify(historico.slice(-10)));
-      carregarHistorico();
-      enviarParaPlanilha(item);
-    }
+        alert('Produto salvo na aba Produtos e registrado no Histórico.');
+      } catch (error) {
+        console.error(error);
+        alert('Erro ao salvar na planilha. Verifique o Worker e o Apps Script.');
+      } finally {
+        btn.textContent = textoOriginal;
+        btn.disabled = false;
+      }
+    });
 
     document.getElementById('limparBtn').addEventListener('click', () => {
       document.getElementById('produto').value = '';
@@ -687,16 +507,291 @@
       calcular();
     });
 
-    let historicoTimeout;
-
-    ids.forEach(id => document.getElementById(id).addEventListener('input', () => {
-      calcular();
-      clearTimeout(historicoTimeout);
-      historicoTimeout = setTimeout(salvarHistoricoAutomatico, 900);
-    }));
-
+    ids.forEach(id => document.getElementById(id).addEventListener('input', calcular));
     calcular();
     carregarHistorico();
   </script>
 </body>
 </html>
+```
+
+---
+
+# 2) Apps Script completo ajustado
+
+Substitua todo o conteúdo do seu Apps Script por este código:
+
+```javascript
+function criarPrecificacaoProdutosNova() {
+  var ss = SpreadsheetApp.getActive();
+
+  var shConfig = ss.getSheetByName("Config");
+  if (!shConfig) shConfig = ss.insertSheet("Config");
+
+  var shProd = ss.getSheetByName("Produtos");
+  if (!shProd) shProd = ss.insertSheet("Produtos");
+
+  shConfig.getRange("A1:G40").clearContent();
+  shConfig.getRange("A1").setValue("CONFIGURAÇÕES (edite apenas aqui)");
+  shConfig.getRange("A1").setFontWeight("bold");
+
+  shConfig.getRange("A2").setValue("1 real em compras gera (pontos)");
+  shConfig.getRange("B2").setValue(0.30);
+  shConfig.getRange("B2").setNumberFormat("0.0000");
+
+  shConfig.getRange("A3").setValue("Lucro padrão (% sobre custo)");
+  shConfig.getRange("B3").setValue(0.20);
+  shConfig.getRange("B3").setNumberFormat("0.00%");
+
+  shConfig.getRange("A5").setValue("BÔNUS UNILEVEL (%)");
+  shConfig.getRange("A5").setFontWeight("bold");
+
+  shConfig.getRange("A6").setValue("Nível 1"); shConfig.getRange("B6").setValue(0.05);
+  shConfig.getRange("A7").setValue("Nível 2"); shConfig.getRange("B7").setValue(0.04);
+  shConfig.getRange("A8").setValue("Nível 3"); shConfig.getRange("B8").setValue(0.04);
+  shConfig.getRange("A9").setValue("Nível 4"); shConfig.getRange("B9").setValue(0.02);
+  shConfig.getRange("A10").setValue("Nível 5"); shConfig.getRange("B10").setValue(0.02);
+  shConfig.getRange("A11").setValue("Nível 6"); shConfig.getRange("B11").setValue(0.02);
+  shConfig.getRange("A12").setValue("Nível 7"); shConfig.getRange("B12").setValue(0.01);
+  shConfig.getRange("A13").setValue("TOTAL");
+  shConfig.getRange("B13").setFormula("=SUM(B6:B12)");
+  shConfig.getRange("B6:B13").setNumberFormat("0.00%");
+
+  shConfig.getRange("A15").setValue("FUNDO DE PREMIAÇÃO (%)");
+  shConfig.getRange("A15").setFontWeight("bold");
+  shConfig.getRange("A16").setValue("Percentual sobre consumo");
+  shConfig.getRange("B16").setValue(0.05);
+  shConfig.getRange("B16").setNumberFormat("0.00%");
+
+  shConfig.getRange("A18").setValue("TAXAS E IMPOSTOS");
+  shConfig.getRange("A18").setFontWeight("bold");
+  shConfig.getRange("A19").setValue("Gateway (% do preço)");
+  shConfig.getRange("B19").setValue(0.04);
+  shConfig.getRange("B19").setNumberFormat("0.00%");
+  shConfig.getRange("A20").setValue("Imposto (% do preço)");
+  shConfig.getRange("B20").setValue(0.12);
+  shConfig.getRange("B20").setNumberFormat("0.00%");
+  shConfig.getRange("A21").setValue("Sistema (% sobre líquido)");
+  shConfig.getRange("B21").setValue(0.05);
+  shConfig.getRange("B21").setNumberFormat("0.00%");
+
+  shConfig.getRange("A23").setValue("CONTROLE FINANCEIRO");
+  shConfig.getRange("A23").setFontWeight("bold");
+  shConfig.getRange("A24").setValue("Payout máximo aceitável (%)");
+  shConfig.getRange("B24").setValue(0.45);
+  shConfig.getRange("B24").setNumberFormat("0.00%");
+  shConfig.getRange("A25").setValue("Margem líquida mínima aceitável (%)");
+  shConfig.getRange("B25").setValue(0.10);
+  shConfig.getRange("B25").setNumberFormat("0.00%");
+
+  shConfig.getRange("A27").setValue("INSTRUÇÃO: Na aba 'Produtos', altere apenas Custo (B) e Preço Manual (D). O restante será calculado automaticamente.");
+  shConfig.getRange("A27").setFontStyle("italic");
+  shConfig.autoResizeColumns(1, 2);
+  shConfig.setFrozenRows(1);
+
+  montarAbaProdutos_(ss);
+  montarAbaHistorico_(ss);
+
+  SpreadsheetApp.flush();
+  ss.setActiveSheet(shProd);
+}
+
+function montarAbaProdutos_(ss) {
+  var shProd = ss.getSheetByName("Produtos");
+  if (!shProd) shProd = ss.insertSheet("Produtos");
+
+  shProd.getRange("A1").setValue("PRODUTOS (altere apenas Custo e Preço Manual)");
+  shProd.getRange("A1").setFontWeight("bold");
+
+  var headers = [
+    "Produto",
+    "Custo (R$) [DIGITE]",
+    "Preço Sugerido (R$) [AUTO]",
+    "Preço Manual (R$) [DIGITE]",
+    "Preço Final (R$)",
+    "Margem sobre preço",
+    "Lucro real líquido (R$)",
+    "Payout total (R$)",
+    "Pontos",
+    "Fundo Premiação (R$)",
+    "Bônus Unilevel (R$)",
+    "Nível 1 (R$)",
+    "Nível 2 (R$)",
+    "Nível 3 (R$)",
+    "Nível 4 (R$)",
+    "Nível 5 (R$)",
+    "Nível 6 (R$)",
+    "Nível 7 (R$)",
+    "Payout %",
+    "Margem líquida %"
+  ];
+
+  shProd.getRange(2, 1, 1, headers.length).setValues([headers]);
+  shProd.getRange(2, 1, 1, headers.length).setFontWeight("bold");
+  formatarProdutos_();
+}
+
+function montarAbaHistorico_(ss) {
+  var sh = ss.getSheetByName("Historico");
+  if (!sh) sh = ss.insertSheet("Historico");
+
+  if (sh.getLastRow() === 0) {
+    sh.appendRow([
+      "DataHora",
+      "Produto",
+      "Custo",
+      "PrecoSugerido",
+      "PrecoManual",
+      "PrecoFinal",
+      "MargemSobrePreco",
+      "LucroLiquido",
+      "PayoutTotal",
+      "Pontos",
+      "FundoPremiacao",
+      "BonusUnilevel",
+      "Nivel1",
+      "Nivel2",
+      "Nivel3",
+      "Nivel4",
+      "Nivel5",
+      "Nivel6",
+      "Nivel7",
+      "PayoutPercent",
+      "MargemLiquida",
+      "Status"
+    ]);
+  }
+
+  sh.setFrozenRows(1);
+  sh.autoResizeColumns(1, 22);
+}
+
+function salvarLinhaProduto_(sh, data) {
+  var nextRow = Math.max(sh.getLastRow() + 1, 3);
+
+  sh.getRange(nextRow, 1, 1, 20).setValues([[
+    data.produto || "",
+    Number(data.custo) || 0,
+    Number(data.precoSugerido) || 0,
+    data.precoManual === "" || data.precoManual == null ? "" : Number(data.precoManual),
+    Number(data.precoFinal) || 0,
+    Number(data.margemSobrePreco) || 0,
+    Number(data.lucroLiquido) || 0,
+    Number(data.payoutTotal) || 0,
+    Number(data.pontos) || 0,
+    Number(data.fundoValor) || 0,
+    Number(data.bonusUnilevel) || 0,
+    Number(data.n1) || 0,
+    Number(data.n2) || 0,
+    Number(data.n3) || 0,
+    Number(data.n4) || 0,
+    Number(data.n5) || 0,
+    Number(data.n6) || 0,
+    Number(data.n7) || 0,
+    Number(data.payoutPercent) || 0,
+    Number(data.margemLiquida) || 0
+  ]]);
+
+  formatarProdutos_();
+}
+
+function salvarLinhaHistorico_(sh, data) {
+  sh.appendRow([
+    new Date(),
+    data.produto || "",
+    Number(data.custo) || 0,
+    Number(data.precoSugerido) || 0,
+    data.precoManual === "" || data.precoManual == null ? "" : Number(data.precoManual),
+    Number(data.precoFinal) || 0,
+    Number(data.margemSobrePreco) || 0,
+    Number(data.lucroLiquido) || 0,
+    Number(data.payoutTotal) || 0,
+    Number(data.pontos) || 0,
+    Number(data.fundoValor) || 0,
+    Number(data.bonusUnilevel) || 0,
+    Number(data.n1) || 0,
+    Number(data.n2) || 0,
+    Number(data.n3) || 0,
+    Number(data.n4) || 0,
+    Number(data.n5) || 0,
+    Number(data.n6) || 0,
+    Number(data.n7) || 0,
+    Number(data.payoutPercent) || 0,
+    Number(data.margemLiquida) || 0,
+    data.status || ""
+  ]);
+}
+
+function formatarProdutos_() {
+  var ss = SpreadsheetApp.getActive();
+  var shProd = ss.getSheetByName("Produtos");
+  if (!shProd) return;
+
+  var lastRow = Math.max(shProd.getLastRow(), 3);
+
+  shProd.getRange("B3:E" + lastRow).setNumberFormat("R$ #,##0.00");
+  shProd.getRange("G3:H" + lastRow).setNumberFormat("R$ #,##0.00");
+  shProd.getRange("J3:R" + lastRow).setNumberFormat("R$ #,##0.00");
+  shProd.getRange("I3:I" + lastRow).setNumberFormat("#,##0");
+  shProd.getRange("F3:F" + lastRow).setNumberFormat("0.00%");
+  shProd.getRange("S3:T" + lastRow).setNumberFormat("0.00%");
+
+  shProd.getRange("A3:A" + lastRow).setBackground("#ffffff");
+  shProd.getRange("B3:B" + lastRow).setBackground("#e8f0fe");
+  shProd.getRange("D3:D" + lastRow).setBackground("#e8f0fe");
+
+  shProd.autoResizeColumns(1, 20);
+  shProd.setFrozenRows(2);
+}
+
+function doPost(e) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    montarAbaProdutos_(ss);
+    montarAbaHistorico_(ss);
+
+    var data = JSON.parse(e.postData.contents || "{}");
+    var shProd = ss.getSheetByName("Produtos");
+    var shHist = ss.getSheetByName("Historico");
+
+    salvarLinhaProduto_(shProd, data);
+    salvarLinhaHistorico_(shHist, data);
+
+    return ContentService
+      .createTextOutput(JSON.stringify({ ok: true }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ ok: false, error: String(error) }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function onEdit(e) {
+  try {
+    if (!e || !e.range) return;
+
+    var sh = e.range.getSheet();
+    var nomeAba = sh.getName();
+
+    if (nomeAba === "Config") {
+      formatarProdutos_();
+    }
+  } catch (error) {
+    Logger.log("Erro no onEdit: " + error);
+  }
+}
+```
+
+---
+
+# 3) Depois de colar
+
+No GitHub, cole o `index.html` e faça **Commit changes**.
+
+No Apps Script, cole o código e faça:
+
+**Implantar → Gerenciar implantações → Editar → Nova versão → Implantar**
+
+Depois teste no sistema clicando em **Salvar produto**.
