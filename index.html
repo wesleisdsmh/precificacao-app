@@ -175,11 +175,9 @@
     }
 
     button:disabled { opacity: 0.7; cursor: not-allowed; }
-
     .btn-primary { background: linear-gradient(135deg, #f67900, #5815ae); color: white; }
     .btn-primary:hover { background: linear-gradient(135deg, #d96500, #4a1194); }
     .btn-secondary { background: #e5e7eb; color: #111827; }
-    .btn-market { background: linear-gradient(135deg, #5815ae, #7c3aed); color: white; }
 
     .tag {
       display: inline-block;
@@ -192,41 +190,9 @@
       margin-bottom: 14px;
     }
 
-    .market-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .market-box {
-      background: #f8fafc;
-      border: 1px solid #d1d5db;
-      border-radius: 16px;
-      padding: 16px;
-    }
-
-    .market-box h3 {
-      margin: 0 0 12px;
-      font-size: 18px;
-    }
-
-    .market-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 8px 0;
-      border-bottom: 1px solid #e5e7eb;
-      font-size: 14px;
-    }
-
-    .market-row:last-child { border-bottom: 0; }
-    .market-row strong { font-size: 15px; }
-    .market-error { color: #b91c1c; font-size: 14px; line-height: 1.4; }
-    .market-muted { color: var(--muted); font-size: 14px; }
-
     @media (max-width: 960px) {
       .span-7, .span-5, .span-6, .span-12 { grid-column: span 12; }
-      .fields, .summary, .fields-4, .market-grid { grid-template-columns: 1fr; }
+      .fields, .summary, .fields-4 { grid-template-columns: 1fr; }
       .hero h1 { font-size: 26px; }
     }
   </style>
@@ -235,14 +201,14 @@
   <div class="container">
     <section class="hero">
       <h1>Sistema de Precificação</h1>
-      <p>Preencha os dados do produto, consulte o mercado, confira a viabilidade e clique em Salvar produto para gravar na aba Produtos e no Histórico da planilha.</p>
+      <p>Preencha os dados do produto, confira a viabilidade e clique em Salvar produto para gravar na aba Produtos e no Histórico da planilha.</p>
     </section>
 
     <div class="grid">
       <section class="card span-7">
         <span class="tag">Precificação do produto</span>
         <h2>Dados principais</h2>
-        <p class="section-desc">Preencha os dados, consulte o mercado se quiser e salve apenas quando quiser registrar o produto na planilha.</p>
+        <p class="section-desc">Preencha os dados e salve apenas quando quiser registrar o produto na planilha.</p>
 
         <div class="fields">
           <div class="field">
@@ -266,7 +232,6 @@
 
         <div class="toolbar">
           <button class="btn-primary" id="salvarProdutoBtn">Salvar produto</button>
-          <button class="btn-market" id="consultarMercadoBtn">Consultar mercado</button>
           <button class="btn-secondary" id="limparBtn">Limpar campos</button>
         </div>
       </section>
@@ -279,6 +244,7 @@
         <div class="summary">
           <div class="metric"><div class="label">Preço sugerido</div><div class="value" id="precoSugerido">R$ 0,00</div></div>
           <div class="metric"><div class="label">Preço final</div><div class="value" id="precoFinal">R$ 0,00</div></div>
+          <div class="metric"><div class="label">Pontos do produto</div><div class="value" id="pontosResumo">0</div></div>
           <div class="metric"><div class="label">Lucro líquido</div><div class="value" id="lucroLiquido">R$ 0,00</div></div>
           <div class="metric"><div class="label">Margem líquida</div><div class="value" id="margemLiquida">0,00%</div></div>
           <div class="metric"><div class="label">Payout total</div><div class="value" id="payoutTotal">R$ 0,00</div></div>
@@ -288,23 +254,6 @@
         <div id="statusBox" class="status-box success">
           Saudável
           <small>Produto dentro da margem e payout aceitáveis.</small>
-        </div>
-      </section>
-
-      <section class="card span-12" id="mercadoCard">
-        <span class="tag">Consulta de mercado</span>
-        <h2>Faixa de preço encontrada</h2>
-        <p class="section-desc">Clique em “Consultar mercado” para pesquisar pelo nome do produto. Mercado Livre funciona sem chave. SerpApi aparece quando a chave estiver configurada no Worker.</p>
-
-        <div class="market-grid">
-          <div class="market-box" id="mercadoLivreBox">
-            <h3>Mercado Livre</h3>
-            <p class="market-muted">Ainda não consultado.</p>
-          </div>
-          <div class="market-box" id="serpApiBox">
-            <h3>SerpApi / Google Shopping</h3>
-            <p class="market-muted">Ainda não consultado.</p>
-          </div>
         </div>
       </section>
 
@@ -377,6 +326,7 @@
     const getNum = (id) => parseFloat(document.getElementById(id).value) || 0;
     const getText = (id) => document.getElementById(id).value.trim();
     const toRate = (value) => value / 100;
+    const arredondar2 = (valor) => Math.round((Number(valor) || 0) * 100) / 100;
 
     function calcular() {
       const custo = getNum('custo');
@@ -399,28 +349,30 @@
 
       const bonusUnilevelPercent = n1 + n2 + n3 + n4 + n5 + n6 + n7;
       const denominador = 1 - gateway - imposto - ((1 - gateway - imposto) * (bonusUnilevelPercent + fundo + sistema));
-      const precoSugerido = custo > 0 && denominador > 0 ? (custo * (1 + lucroPadrao)) / denominador : 0;
-      const precoFinal = precoManual > 0 ? precoManual : precoSugerido;
+
+      const precoSugeridoBruto = custo > 0 && denominador > 0 ? (custo * (1 + lucroPadrao)) / denominador : 0;
+      const precoSugerido = arredondar2(precoSugeridoBruto);
+      const precoFinal = arredondar2(precoManual > 0 ? precoManual : precoSugerido);
       const liquidoBase = precoFinal * (1 - gateway - imposto);
 
       const pontosCalculado = precoFinal > 0 ? Math.round((precoFinal * pontosPorReal) * 10000) / 10000 : 0;
       const pontos = Math.floor(pontosCalculado);
 
-      const fundoValor = liquidoBase * fundo;
-      const bonusUnilevel = liquidoBase * bonusUnilevelPercent;
-      const sistemaValor = liquidoBase * sistema;
+      const fundoValor = arredondar2(liquidoBase * fundo);
+      const bonusUnilevel = arredondar2(liquidoBase * bonusUnilevelPercent);
+      const sistemaValor = arredondar2(liquidoBase * sistema);
 
-      const n1Valor = liquidoBase * n1;
-      const n2Valor = liquidoBase * n2;
-      const n3Valor = liquidoBase * n3;
-      const n4Valor = liquidoBase * n4;
-      const n5Valor = liquidoBase * n5;
-      const n6Valor = liquidoBase * n6;
-      const n7Valor = liquidoBase * n7;
+      const n1Valor = arredondar2(liquidoBase * n1);
+      const n2Valor = arredondar2(liquidoBase * n2);
+      const n3Valor = arredondar2(liquidoBase * n3);
+      const n4Valor = arredondar2(liquidoBase * n4);
+      const n5Valor = arredondar2(liquidoBase * n5);
+      const n6Valor = arredondar2(liquidoBase * n6);
+      const n7Valor = arredondar2(liquidoBase * n7);
 
       const margemSobrePreco = precoFinal > 0 ? (precoFinal - custo) / precoFinal : 0;
-      const lucroLiquido = precoFinal - custo - (precoFinal * gateway) - (precoFinal * imposto) - bonusUnilevel - fundoValor - sistemaValor;
-      const payoutTotal = fundoValor + bonusUnilevel + sistemaValor;
+      const lucroLiquido = arredondar2(precoFinal - custo - (precoFinal * gateway) - (precoFinal * imposto) - bonusUnilevel - fundoValor - sistemaValor);
+      const payoutTotal = arredondar2(fundoValor + bonusUnilevel + sistemaValor);
       const payoutPercent = precoFinal > 0 ? payoutTotal / precoFinal : 0;
       const margemLiquida = precoFinal > 0 ? lucroLiquido / precoFinal : 0;
 
@@ -445,6 +397,7 @@
       document.getElementById('payoutTotal').textContent = currency.format(payoutTotal || 0);
       document.getElementById('payoutPercent').textContent = percent.format((payoutPercent || 0) * 100) + '%';
       document.getElementById('pontos').textContent = inteiro.format(pontos || 0);
+      document.getElementById('pontosResumo').textContent = inteiro.format(pontos || 0);
       document.getElementById('fundoValor').textContent = currency.format(fundoValor || 0);
       document.getElementById('bonusUnilevelValor').textContent = currency.format(bonusUnilevel || 0);
       document.getElementById('n1Valor').textContent = currency.format(n1Valor || 0);
@@ -464,8 +417,8 @@
       return {
         destino: 'ProdutosEHistorico',
         produto: getText('produto') || 'Sem nome',
-        custo,
-        precoManual: document.getElementById('precoManual').value === '' ? '' : precoManual,
+        custo: arredondar2(custo),
+        precoManual: document.getElementById('precoManual').value === '' ? '' : arredondar2(precoManual),
         precoSugerido,
         precoFinal,
         margemSobrePreco,
@@ -513,60 +466,6 @@
       return response.json().catch(() => ({ ok: true }));
     }
 
-    function renderFonteMercado(containerId, dados) {
-      const box = document.getElementById(containerId);
-      if (!dados || !dados.ok) {
-        box.innerHTML = `
-          <h3>${dados?.fonte || 'Fonte'}</h3>
-          <p class="market-error">${dados?.erro || 'Não foi possível consultar esta fonte.'}</p>
-        `;
-        return;
-      }
-
-      box.innerHTML = `
-        <h3>${dados.fonte}</h3>
-        <div class="market-row"><span>Menor preço</span><strong>${currency.format(dados.menor || 0)}</strong></div>
-        <div class="market-row"><span>Maior preço</span><strong>${currency.format(dados.maior || 0)}</strong></div>
-        <div class="market-row"><span>Preço médio</span><strong>${currency.format(dados.media || 0)}</strong></div>
-        <div class="market-row"><span>Itens analisados</span><strong>${dados.quantidade || 0}</strong></div>
-      `;
-    }
-
-    document.getElementById('consultarMercadoBtn').addEventListener('click', async () => {
-      const produto = getText('produto');
-      if (!produto) {
-        alert('Digite o nome do produto antes de consultar o mercado.');
-        return;
-      }
-
-      const btn = document.getElementById('consultarMercadoBtn');
-      const textoOriginal = btn.textContent;
-      btn.textContent = 'Consultando...';
-      btn.disabled = true;
-
-      document.getElementById('mercadoLivreBox').innerHTML = '<h3>Mercado Livre</h3><p class="market-muted">Consultando...</p>';
-      document.getElementById('serpApiBox').innerHTML = '<h3>SerpApi / Google Shopping</h3><p class="market-muted">Consultando...</p>';
-
-      try {
-        const response = await fetch(WORKER_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ acao: 'consultarMercado', produto })
-        });
-
-        const dados = await response.json();
-        renderFonteMercado('mercadoLivreBox', dados.mercadoLivre);
-        renderFonteMercado('serpApiBox', dados.serpApi);
-      } catch (error) {
-        console.error(error);
-        document.getElementById('mercadoLivreBox').innerHTML = '<h3>Mercado Livre</h3><p class="market-error">Erro ao consultar mercado.</p>';
-        document.getElementById('serpApiBox').innerHTML = '<h3>SerpApi / Google Shopping</h3><p class="market-error">Erro ao consultar mercado.</p>';
-      } finally {
-        btn.textContent = textoOriginal;
-        btn.disabled = false;
-      }
-    });
-
     document.getElementById('salvarProdutoBtn').addEventListener('click', async () => {
       const produto = calcular();
       if (!produto.produto || produto.produto === 'Sem nome' || produto.precoFinal <= 0) {
@@ -608,3 +507,329 @@
   </script>
 </body>
 </html>
+```
+
+---
+
+# 2) Apps Script completo atualizado
+
+Substitua todo o conteúdo do seu Apps Script por este código:
+
+```javascript
+function criarPrecificacaoProdutosNova() {
+  var ss = SpreadsheetApp.getActive();
+
+  var shConfig = ss.getSheetByName("Config");
+  if (!shConfig) shConfig = ss.insertSheet("Config");
+
+  var shProd = ss.getSheetByName("Produtos");
+  if (!shProd) shProd = ss.insertSheet("Produtos");
+
+  shConfig.getRange("A1:G40").clearContent();
+
+  shConfig.getRange("A1").setValue("CONFIGURAÇÕES (edite apenas aqui)");
+  shConfig.getRange("A1").setFontWeight("bold");
+
+  shConfig.getRange("A2").setValue("1 real em compras gera (pontos)");
+  shConfig.getRange("B2").setValue(0.30);
+  shConfig.getRange("B2").setNumberFormat("0.0000");
+
+  shConfig.getRange("A3").setValue("Lucro padrão (% sobre custo)");
+  shConfig.getRange("B3").setValue(0.20);
+  shConfig.getRange("B3").setNumberFormat("0.00%");
+
+  shConfig.getRange("A5").setValue("BÔNUS UNILEVEL (%)");
+  shConfig.getRange("A5").setFontWeight("bold");
+
+  shConfig.getRange("A6").setValue("Nível 1"); shConfig.getRange("B6").setValue(0.05);
+  shConfig.getRange("A7").setValue("Nível 2"); shConfig.getRange("B7").setValue(0.04);
+  shConfig.getRange("A8").setValue("Nível 3"); shConfig.getRange("B8").setValue(0.04);
+  shConfig.getRange("A9").setValue("Nível 4"); shConfig.getRange("B9").setValue(0.02);
+  shConfig.getRange("A10").setValue("Nível 5"); shConfig.getRange("B10").setValue(0.02);
+  shConfig.getRange("A11").setValue("Nível 6"); shConfig.getRange("B11").setValue(0.02);
+  shConfig.getRange("A12").setValue("Nível 7"); shConfig.getRange("B12").setValue(0.01);
+
+  shConfig.getRange("A13").setValue("TOTAL");
+  shConfig.getRange("B13").setFormula("=SUM(B6:B12)");
+  shConfig.getRange("B6:B13").setNumberFormat("0.00%");
+
+  shConfig.getRange("A15").setValue("FUNDO DE PREMIAÇÃO (%)");
+  shConfig.getRange("A15").setFontWeight("bold");
+  shConfig.getRange("A16").setValue("Percentual sobre consumo");
+  shConfig.getRange("B16").setValue(0.05);
+  shConfig.getRange("B16").setNumberFormat("0.00%");
+
+  shConfig.getRange("A18").setValue("TAXAS E IMPOSTOS");
+  shConfig.getRange("A18").setFontWeight("bold");
+  shConfig.getRange("A19").setValue("Gateway (% do preço)");
+  shConfig.getRange("B19").setValue(0.04);
+  shConfig.getRange("B19").setNumberFormat("0.00%");
+  shConfig.getRange("A20").setValue("Imposto (% do preço)");
+  shConfig.getRange("B20").setValue(0.12);
+  shConfig.getRange("B20").setNumberFormat("0.00%");
+  shConfig.getRange("A21").setValue("Sistema (% sobre líquido)");
+  shConfig.getRange("B21").setValue(0.05);
+  shConfig.getRange("B21").setNumberFormat("0.00%");
+
+  shConfig.getRange("A23").setValue("CONTROLE FINANCEIRO");
+  shConfig.getRange("A23").setFontWeight("bold");
+  shConfig.getRange("A24").setValue("Payout máximo aceitável (%)");
+  shConfig.getRange("B24").setValue(0.45);
+  shConfig.getRange("B24").setNumberFormat("0.00%");
+  shConfig.getRange("A25").setValue("Margem líquida mínima aceitável (%)");
+  shConfig.getRange("B25").setValue(0.10);
+  shConfig.getRange("B25").setNumberFormat("0.00%");
+
+  shConfig.getRange("A27").setValue("INSTRUÇÃO: Na aba 'Produtos', os dados salvos pelo painel ficam editáveis para ajustes manuais.");
+  shConfig.getRange("A27").setFontStyle("italic");
+  shConfig.autoResizeColumns(1, 2);
+  shConfig.setFrozenRows(1);
+
+  montarAbaProdutos_(ss);
+  montarAbaHistorico_(ss);
+
+  SpreadsheetApp.flush();
+  ss.setActiveSheet(shProd);
+}
+
+function montarAbaProdutos_(ss) {
+  var shProd = ss.getSheetByName("Produtos");
+  if (!shProd) shProd = ss.insertSheet("Produtos");
+
+  shProd.getRange("A1").setValue("PRODUTOS");
+  shProd.getRange("A1").setFontWeight("bold");
+
+  var headers = [
+    "Produto",
+    "Custo (R$)",
+    "Preço Sugerido (R$)",
+    "Preço Manual (R$)",
+    "Preço Final (R$)",
+    "Margem sobre preço",
+    "Lucro real líquido (R$)",
+    "Payout total (R$)",
+    "Pontos",
+    "Fundo Premiação (R$)",
+    "Bônus Unilevel (R$)",
+    "Nível 1 (R$)",
+    "Nível 2 (R$)",
+    "Nível 3 (R$)",
+    "Nível 4 (R$)",
+    "Nível 5 (R$)",
+    "Nível 6 (R$)",
+    "Nível 7 (R$)",
+    "Payout %",
+    "Margem líquida %"
+  ];
+
+  shProd.getRange(2, 1, 1, headers.length).setValues([headers]);
+  shProd.getRange(2, 1, 1, headers.length).setFontWeight("bold");
+
+  formatarProdutos_();
+}
+
+function montarAbaHistorico_(ss) {
+  var sh = ss.getSheetByName("Historico");
+  if (!sh) sh = ss.insertSheet("Historico");
+
+  if (sh.getLastRow() === 0) {
+    sh.appendRow([
+      "DataHora",
+      "Produto",
+      "Custo",
+      "PrecoSugerido",
+      "PrecoManual",
+      "PrecoFinal",
+      "MargemSobrePreco",
+      "LucroLiquido",
+      "PayoutTotal",
+      "Pontos",
+      "FundoPremiacao",
+      "BonusUnilevel",
+      "Nivel1",
+      "Nivel2",
+      "Nivel3",
+      "Nivel4",
+      "Nivel5",
+      "Nivel6",
+      "Nivel7",
+      "PayoutPercent",
+      "MargemLiquida",
+      "Status"
+    ]);
+  }
+
+  sh.setFrozenRows(1);
+  sh.autoResizeColumns(1, 22);
+}
+
+function numero2_(valor) {
+  valor = Number(valor) || 0;
+  return Math.round(valor * 100) / 100;
+}
+
+function porcentagem_(valor) {
+  return Number(valor) || 0;
+}
+
+function salvarLinhaProduto_(sh, data) {
+  var nextRow = Math.max(sh.getLastRow() + 1, 3);
+
+  sh.getRange(nextRow, 1, 1, 20).setValues([[
+    data.produto || "",
+    numero2_(data.custo),
+    numero2_(data.precoSugerido),
+    data.precoManual === "" || data.precoManual == null ? "" : numero2_(data.precoManual),
+    numero2_(data.precoFinal),
+    porcentagem_(data.margemSobrePreco),
+    numero2_(data.lucroLiquido),
+    numero2_(data.payoutTotal),
+    Math.floor(Number(data.pontos) || 0),
+    numero2_(data.fundoValor),
+    numero2_(data.bonusUnilevel),
+    numero2_(data.n1),
+    numero2_(data.n2),
+    numero2_(data.n3),
+    numero2_(data.n4),
+    numero2_(data.n5),
+    numero2_(data.n6),
+    numero2_(data.n7),
+    porcentagem_(data.payoutPercent),
+    porcentagem_(data.margemLiquida)
+  ]]);
+
+  formatarProdutos_();
+}
+
+function salvarLinhaHistorico_(sh, data) {
+  sh.appendRow([
+    new Date(),
+    data.produto || "",
+    numero2_(data.custo),
+    numero2_(data.precoSugerido),
+    data.precoManual === "" || data.precoManual == null ? "" : numero2_(data.precoManual),
+    numero2_(data.precoFinal),
+    porcentagem_(data.margemSobrePreco),
+    numero2_(data.lucroLiquido),
+    numero2_(data.payoutTotal),
+    Math.floor(Number(data.pontos) || 0),
+    numero2_(data.fundoValor),
+    numero2_(data.bonusUnilevel),
+    numero2_(data.n1),
+    numero2_(data.n2),
+    numero2_(data.n3),
+    numero2_(data.n4),
+    numero2_(data.n5),
+    numero2_(data.n6),
+    numero2_(data.n7),
+    porcentagem_(data.payoutPercent),
+    porcentagem_(data.margemLiquida),
+    data.status || ""
+  ]);
+
+  formatarHistorico_();
+}
+
+function formatarProdutos_() {
+  var ss = SpreadsheetApp.getActive();
+  var shProd = ss.getSheetByName("Produtos");
+  if (!shProd) return;
+
+  var lastRow = Math.max(shProd.getLastRow(), 3);
+
+  shProd.getRange("B3:E" + lastRow).setNumberFormat("R$ #,##0.00");
+  shProd.getRange("G3:H" + lastRow).setNumberFormat("R$ #,##0.00");
+  shProd.getRange("J3:R" + lastRow).setNumberFormat("R$ #,##0.00");
+  shProd.getRange("I3:I" + lastRow).setNumberFormat("#,##0");
+  shProd.getRange("F3:F" + lastRow).setNumberFormat("0.00%");
+  shProd.getRange("S3:T" + lastRow).setNumberFormat("0.00%");
+
+  shProd.getRange("A3:A" + lastRow).setBackground("#ffffff");
+  shProd.getRange("B3:B" + lastRow).setBackground("#e8f0fe");
+  shProd.getRange("C3:C" + lastRow).setBackground("#fff7ed");
+  shProd.getRange("D3:D" + lastRow).setBackground("#e8f0fe");
+
+  shProd.autoResizeColumns(1, 20);
+  shProd.setFrozenRows(2);
+
+  var protections = shProd.getProtections(SpreadsheetApp.ProtectionType.SHEET);
+  for (var i = 0; i < protections.length; i++) {
+    protections[i].remove();
+  }
+}
+
+function formatarHistorico_() {
+  var ss = SpreadsheetApp.getActive();
+  var sh = ss.getSheetByName("Historico");
+  if (!sh) return;
+
+  var lastRow = Math.max(sh.getLastRow(), 2);
+
+  sh.getRange("C2:F" + lastRow).setNumberFormat("R$ #,##0.00");
+  sh.getRange("H2:I" + lastRow).setNumberFormat("R$ #,##0.00");
+  sh.getRange("K2:S" + lastRow).setNumberFormat("R$ #,##0.00");
+  sh.getRange("J2:J" + lastRow).setNumberFormat("#,##0");
+  sh.getRange("G2:G" + lastRow).setNumberFormat("0.00%");
+  sh.getRange("T2:U" + lastRow).setNumberFormat("0.00%");
+
+  sh.autoResizeColumns(1, 22);
+  sh.setFrozenRows(1);
+}
+
+function doPost(e) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    montarAbaProdutos_(ss);
+    montarAbaHistorico_(ss);
+
+    var data = JSON.parse(e.postData.contents || "{}");
+    var shProd = ss.getSheetByName("Produtos");
+    var shHist = ss.getSheetByName("Historico");
+
+    salvarLinhaProduto_(shProd, data);
+    salvarLinhaHistorico_(shHist, data);
+
+    return ContentService
+      .createTextOutput(JSON.stringify({ ok: true }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ ok: false, error: String(error) }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function onEdit(e) {
+  try {
+    if (!e || !e.range) return;
+
+    var sh = e.range.getSheet();
+    var nomeAba = sh.getName();
+
+    if (nomeAba === "Config" || nomeAba === "Produtos" || nomeAba === "Historico") {
+      formatarProdutos_();
+      formatarHistorico_();
+    }
+  } catch (error) {
+    Logger.log("Erro no onEdit: " + error);
+  }
+}
+```
+
+---
+
+# 3) Depois de colar
+
+No GitHub:
+
+1. substitua o `index.html`;
+2. clique em **Commit changes**.
+
+No Apps Script:
+
+1. substitua todo o código;
+2. salve;
+3. vá em **Implantar → Gerenciar implantações → Editar → Nova versão → Implantar**.
+
+Depois acesse o sistema e clique em **Salvar produto**.
