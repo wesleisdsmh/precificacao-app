@@ -5,80 +5,79 @@ const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: '
 const percent = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const inteiro = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
 
-const ids = [
-  'produto','custo','precoManual','lucroPadrao','pontosPorReal','gateway','imposto','sistema','fundo',
-  'n1','n2','n3','n4','n5','n6','n7','payoutMax','margemMin'
-];
-
-const getNum = id => parseFloat(document.getElementById(id).value) || 0;
-const getText = id => document.getElementById(id).value.trim();
-const toRate = value => value / 100;
-
-function r2(valor) {
-  return Math.round((Number(valor) || 0) * 100) / 100;
+function r2(v){
+  return Math.round((Number(v)||0)*100)/100
 }
 
-function arredondarInteiro(valor) {
-  return Math.round(Number(valor) || 0);
+// regra de arredondamento dos centavos
+function arredondarCentavos(valor){
+  let inteiro = Math.floor(valor)
+  let centavos = valor - inteiro
+  return centavos >= 0.5 ? inteiro + 1 : inteiro
 }
 
-function calcular() {
-  const custo = r2(getNum('custo'));
-  const precoManualDigitado = document.getElementById('precoManual').value !== '';
-  const precoManual = r2(getNum('precoManual'));
+const getNum = id => parseFloat(document.getElementById(id).value) || 0
+const getText = id => document.getElementById(id).value.trim()
+const toRate = v => v/100
 
-  const lucroPadrao = toRate(getNum('lucroPadrao'));
-  const pontosPorReal = getNum('pontosPorReal');
+function calcular(){
 
-  const gateway = toRate(getNum('gateway'));
-  const imposto = toRate(getNum('imposto'));
-  const sistema = toRate(getNum('sistema'));
-  const fundo = toRate(getNum('fundo'));
+  const custo = r2(getNum('custo'))
+  const precoManualDigitado = document.getElementById('precoManual').value !== ''
+  const precoManual = r2(getNum('precoManual'))
 
-  const n1 = toRate(getNum('n1'));
-  const n2 = toRate(getNum('n2'));
-  const n3 = toRate(getNum('n3'));
-  const n4 = toRate(getNum('n4'));
-  const n5 = toRate(getNum('n5'));
-  const n6 = toRate(getNum('n6'));
-  const n7 = toRate(getNum('n7'));
+  const lucroPadrao = toRate(getNum('lucroPadrao'))
+  const pontosPorReal = getNum('pontosPorReal')
 
-  const payoutMax = toRate(getNum('payoutMax'));
-  const margemMin = toRate(getNum('margemMin'));
+  const gateway = toRate(getNum('gateway'))
+  const imposto = toRate(getNum('imposto'))
+  const sistema = toRate(getNum('sistema'))
+  const fundo = toRate(getNum('fundo'))
 
-  const bonusUnilevelPercent = n1 + n2 + n3 + n4 + n5 + n6 + n7;
+  const n1 = toRate(getNum('n1'))
+  const n2 = toRate(getNum('n2'))
+  const n3 = toRate(getNum('n3'))
+  const n4 = toRate(getNum('n4'))
+  const n5 = toRate(getNum('n5'))
+  const n6 = toRate(getNum('n6'))
+  const n7 = toRate(getNum('n7'))
+
+  const payoutMax = toRate(getNum('payoutMax'))
+  const margemMin = toRate(getNum('margemMin'))
+
+  const bonusPercent = n1+n2+n3+n4+n5+n6+n7
 
   const denominador =
-    1 -
-    gateway -
-    imposto -
-    ((1 - gateway - imposto) * (bonusUnilevelPercent + fundo + sistema));
+    1 - gateway - imposto -
+    ((1 - gateway - imposto) * (bonusPercent + fundo + sistema))
 
   const precoSugerido = r2(
     custo > 0 && denominador > 0
       ? (custo * (1 + lucroPadrao)) / denominador
       : 0
-  );
+  )
 
-  const precoFinal = r2(precoManualDigitado && precoManual > 0 ? precoManual : precoSugerido);
+  const precoBase = precoManualDigitado && precoManual > 0 ? precoManual : precoSugerido
 
-  const baseLiquida = precoFinal * (1 - gateway - imposto);
+  // 🔥 AQUI SUA REGRA DE CENTAVOS
+  const precoFinal = arredondarCentavos(precoBase)
 
-  const pontos = arredondarInteiro(precoFinal * pontosPorReal);
+  const baseLiquida = precoFinal * (1 - gateway - imposto)
 
-  const fundoValor = r2(baseLiquida * fundo);
-  const bonusUnilevel = r2(baseLiquida * bonusUnilevelPercent);
-  const sistemaValor = r2(baseLiquida * sistema);
+  // pontos sempre inteiro
+  const pontos = Math.floor(precoFinal * pontosPorReal)
 
-  const n1Valor = r2(baseLiquida * n1);
-  const n2Valor = r2(baseLiquida * n2);
-  const n3Valor = r2(baseLiquida * n3);
-  const n4Valor = r2(baseLiquida * n4);
-  const n5Valor = r2(baseLiquida * n5);
-  const n6Valor = r2(baseLiquida * n6);
-  const n7Valor = r2(baseLiquida * n7);
+  const fundoValor = r2(baseLiquida * fundo)
+  const bonusUnilevel = r2(baseLiquida * bonusPercent)
+  const sistemaValor = r2(baseLiquida * sistema)
 
-  const margemSobrePreco = precoFinal > 0 ? (precoFinal - custo) / precoFinal : 0;
+  const n1Valor = r2(baseLiquida * n1)
+  const n2Valor = r2(baseLiquida * n2)
+  const n3Valor = r2(baseLiquida * n3)
+  const n4Valor = r2(baseLiquida * n4)
+  const n5Valor = r2(baseLiquida * n5)
+  const n6Valor = r2(baseLiquida * n6)
+  const n7Valor = r2(baseLiquida * n7)
 
   const lucroLiquido = r2(
     precoFinal -
@@ -88,51 +87,49 @@ function calcular() {
     bonusUnilevel -
     fundoValor -
     sistemaValor
-  );
+  )
 
-  const payoutTotal = r2(fundoValor + bonusUnilevel + sistemaValor);
-  const payoutPercent = precoFinal > 0 ? payoutTotal / precoFinal : 0;
-  const margemLiquida = precoFinal > 0 ? lucroLiquido / precoFinal : 0;
+  const payoutTotal = r2(fundoValor + bonusUnilevel + sistemaValor)
+  const payoutPercent = precoFinal > 0 ? payoutTotal / precoFinal : 0
+  const margemLiquida = precoFinal > 0 ? lucroLiquido / precoFinal : 0
 
-  let statusClasse = 'success';
-  let statusTitulo = 'Saudável';
-  let statusTexto = 'Produto dentro da margem e payout aceitáveis.';
+  // STATUS
+  let statusClasse = 'success'
+  let statusTitulo = 'Saudável'
+  let statusTexto = 'Produto saudável'
 
   if (lucroLiquido < 0 || payoutPercent > payoutMax) {
-    statusClasse = 'danger';
-    statusTitulo = 'Risco';
-    statusTexto = 'Preço com risco financeiro. Reveja payout, margem ou custos.';
+    statusClasse = 'danger'
+    statusTitulo = 'Risco'
+    statusTexto = 'Prejuízo ou payout alto'
   } else if (payoutPercent > 0.35 || margemLiquida < margemMin) {
-    statusClasse = 'warning';
-    statusTitulo = 'Atenção';
-    statusTexto = 'Produto viável, mas precisa de atenção nos indicadores.';
+    statusClasse = 'warning'
+    statusTitulo = 'Atenção'
+    statusTexto = 'Margem apertada'
   }
 
-  document.getElementById('precoSugerido').textContent = currency.format(precoSugerido);
-  document.getElementById('precoFinal').textContent = currency.format(precoFinal);
-  document.getElementById('pontosResumo').textContent = inteiro.format(pontos);
-  document.getElementById('lucroLiquido').textContent = currency.format(lucroLiquido);
-  document.getElementById('margemLiquida').textContent = percent.format(margemLiquida * 100) + '%';
-  document.getElementById('payoutTotal').textContent = currency.format(payoutTotal);
-  document.getElementById('payoutPercent').textContent = percent.format(payoutPercent * 100) + '%';
+  // UI
+  document.getElementById('precoSugerido').textContent = currency.format(precoSugerido)
+  document.getElementById('precoFinal').textContent = currency.format(precoFinal)
+  document.getElementById('pontosResumo').textContent = inteiro.format(pontos)
+  document.getElementById('lucroLiquido').textContent = currency.format(lucroLiquido)
+  document.getElementById('margemLiquida').textContent = percent.format(margemLiquida*100)+"%"
+  document.getElementById('payoutTotal').textContent = currency.format(payoutTotal)
+  document.getElementById('payoutPercent').textContent = percent.format(payoutPercent*100)+"%"
 
-  document.getElementById('pontos').textContent = inteiro.format(pontos);
-  document.getElementById('fundoValor').textContent = currency.format(fundoValor);
-  document.getElementById('bonusUnilevelValor').textContent = currency.format(bonusUnilevel);
-  document.getElementById('n1Valor').textContent = currency.format(n1Valor);
-  document.getElementById('n2Valor').textContent = currency.format(n2Valor);
-  document.getElementById('n3Valor').textContent = currency.format(n3Valor);
-  document.getElementById('n4Valor').textContent = currency.format(n4Valor);
-  document.getElementById('n5Valor').textContent = currency.format(n5Valor);
-  document.getElementById('n6Valor').textContent = currency.format(n6Valor);
-  document.getElementById('n7Valor').textContent = currency.format(n7Valor);
+  document.getElementById('pontos').textContent = inteiro.format(pontos)
+  document.getElementById('fundoValor').textContent = currency.format(fundoValor)
+  document.getElementById('bonusUnilevelValor').textContent = currency.format(bonusUnilevel)
+  document.getElementById('n1Valor').textContent = currency.format(n1Valor)
+  document.getElementById('n2Valor').textContent = currency.format(n2Valor)
+  document.getElementById('n3Valor').textContent = currency.format(n3Valor)
+  document.getElementById('n4Valor').textContent = currency.format(n4Valor)
+  document.getElementById('n5Valor').textContent = currency.format(n5Valor)
+  document.getElementById('n6Valor').textContent = currency.format(n6Valor)
+  document.getElementById('n7Valor').textContent = currency.format(n7Valor)
 
-  const statusBox = document.getElementById('statusBox');
-  const resultadoCard = document.getElementById('resultadoCard');
-
-  statusBox.className = 'status-box ' + statusClasse;
-  resultadoCard.className = 'card span-5 ' + statusClasse + '-border';
-  statusBox.innerHTML = `${statusTitulo}<small>${statusTexto}</small>`;
+  document.getElementById('statusBox').className = 'status-box '+statusClasse
+  document.getElementById('statusBox').innerHTML = statusTitulo+"<small>"+statusTexto+"</small>"
 
   return {
     destino: 'ProdutosEHistorico',
@@ -141,7 +138,6 @@ function calcular() {
     precoSugerido,
     precoManual: precoManualDigitado ? precoManual : '',
     precoFinal,
-    margemSobrePreco,
     lucroLiquido,
     payoutTotal,
     pontos,
@@ -157,85 +153,24 @@ function calcular() {
     payoutPercent,
     margemLiquida,
     status: statusTitulo
-  };
+  }
 }
 
-function carregarHistorico() {
-  const historico = JSON.parse(localStorage.getItem('historicoPrecificacao') || '[]');
-  const tbody = document.getElementById('historicoBody');
+async function salvar(){
+  const data = calcular()
 
-  if (!historico.length) {
-    tbody.innerHTML = '<tr><td colspan="3" style="color:#6b7280;">Nenhum produto salvo ainda.</td></tr>';
-    return;
-  }
+  await fetch(WORKER_URL,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(data)
+  })
 
-  tbody.innerHTML = historico.slice().reverse().map(item => `
-    <tr>
-      <td>${item.produto}</td>
-      <td>${currency.format(item.precoFinal || 0)}</td>
-      <td>${currency.format(item.lucroLiquido || 0)}</td>
-    </tr>
-  `).join('');
+  alert("Salvo na planilha")
 }
 
-async function enviarParaPlanilha(payload) {
-  const response = await fetch(WORKER_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
+document.querySelectorAll("input").forEach(i=>{
+  i.addEventListener("input",calcular)
+})
 
-  if (!response.ok) {
-    throw new Error(await response.text());
-  }
-
-  return response.json().catch(() => ({ ok: true }));
-}
-
-document.getElementById('salvarProdutoBtn').addEventListener('click', async () => {
-  const produto = calcular();
-
-  if (!produto.produto || produto.produto === 'Sem nome' || produto.precoFinal <= 0) {
-    alert('Preencha o nome do produto e o custo antes de salvar.');
-    return;
-  }
-
-  const btn = document.getElementById('salvarProdutoBtn');
-  const textoOriginal = btn.textContent;
-
-  btn.textContent = 'Salvando...';
-  btn.disabled = true;
-
-  try {
-    await enviarParaPlanilha(produto);
-
-    const historico = JSON.parse(localStorage.getItem('historicoPrecificacao') || '[]');
-    historico.push({ ...produto, atualizadoEm: new Date().toISOString() });
-
-    localStorage.setItem('historicoPrecificacao', JSON.stringify(historico.slice(-10)));
-    carregarHistorico();
-
-    alert('Produto salvo na aba Produtos e registrado no Histórico.');
-  } catch (error) {
-    console.error(error);
-    alert('Erro ao salvar na planilha. Verifique o Worker e o Apps Script.');
-  } finally {
-    btn.textContent = textoOriginal;
-    btn.disabled = false;
-  }
-});
-
-document.getElementById('limparBtn').addEventListener('click', () => {
-  document.getElementById('produto').value = '';
-  document.getElementById('custo').value = '0';
-  document.getElementById('precoManual').value = '';
-  calcular();
-});
-
-ids.forEach(id => {
-  document.getElementById(id).addEventListener('input', calcular);
-});
-
-calcular();
-carregarHistorico();
+calcular()
 </script>
