@@ -1,176 +1,255 @@
-<script>
-const WORKER_URL = "https://precificacao-api.wesleisdsmh.workers.dev";
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Precificação</title>
 
-const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-const percent = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const inteiro = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
+<style>
+body{
+  font-family:Arial;
+  background:#e5e7eb;
+  margin:0;
+  padding:20px;
+}
+
+.card{
+  background:white;
+  padding:20px;
+  border-radius:12px;
+  margin-bottom:20px;
+}
+
+h2{margin-top:0}
+
+input{
+  width:100%;
+  padding:10px;
+  margin:5px 0 10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+
+button{
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:bold;
+  background:linear-gradient(135deg,#f67900,#5815ae);
+  color:white;
+}
+
+.metric{margin:10px 0}
+.big{font-size:20px;font-weight:bold}
+
+.success{background:#16a34a;color:white;padding:10px;border-radius:10px}
+.warning{background:#f67900;color:white;padding:10px;border-radius:10px}
+.danger{background:#dc2626;color:white;padding:10px;border-radius:10px}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+<h2>Precificação</h2>
+
+<label>Produto</label>
+<input id="produto">
+
+<label>Custo</label>
+<input id="custo" type="number" value="100">
+
+<label>Preço manual</label>
+<input id="precoManual" type="number">
+
+<label>Lucro %</label>
+<input id="lucroPadrao" type="number" value="20">
+
+<hr>
+
+<label>Gateway %</label>
+<input id="gateway" type="number" value="4">
+
+<label>Imposto %</label>
+<input id="imposto" type="number" value="12">
+
+<label>Sistema %</label>
+<input id="sistema" type="number" value="5">
+
+<label>Fundo %</label>
+<input id="fundo" type="number" value="5">
+
+<label>Pontos por real</label>
+<input id="pontosPorReal" type="number" value="0.3">
+
+<hr>
+
+<label>Nível 1</label><input id="n1" type="number" value="5">
+<label>Nível 2</label><input id="n2" type="number" value="4">
+<label>Nível 3</label><input id="n3" type="number" value="4">
+<label>Nível 4</label><input id="n4" type="number" value="2">
+<label>Nível 5</label><input id="n5" type="number" value="2">
+<label>Nível 6</label><input id="n6" type="number" value="2">
+<label>Nível 7</label><input id="n7" type="number" value="1">
+
+<hr>
+
+<label>Payout máximo %</label>
+<input id="payoutMax" type="number" value="45">
+
+<label>Margem mínima %</label>
+<input id="margemMin" type="number" value="10">
+
+<button onclick="salvar()">Salvar produto</button>
+
+</div>
+
+<div class="card">
+<h2>Resultado</h2>
+
+<div class="metric">Preço sugerido: <span id="precoSugerido" class="big"></span></div>
+<div class="metric">Preço final: <span id="precoFinal" class="big"></span></div>
+<div class="metric">Pontos: <span id="pontos" class="big"></span></div>
+<div class="metric">Lucro líquido: <span id="lucroLiquido" class="big"></span></div>
+<div class="metric">Payout total: <span id="payoutTotal" class="big"></span></div>
+<div class="metric">Payout %: <span id="payoutPercent" class="big"></span></div>
+<div class="metric">Margem líquida: <span id="margemLiquida" class="big"></span></div>
+
+<div id="status"></div>
+</div>
+
+<script>
+
+const API = "https://precificacao-api.wesleisdsmh.workers.dev"
 
 function r2(v){
   return Math.round((Number(v)||0)*100)/100
 }
 
-// regra de arredondamento dos centavos
-function arredondarCentavos(valor){
-  let inteiro = Math.floor(valor)
-  let centavos = valor - inteiro
-  return centavos >= 0.5 ? inteiro + 1 : inteiro
+function arredondarCentavos(v){
+  let i = Math.floor(v)
+  let c = v - i
+  return c >= 0.5 ? i+1 : i
 }
-
-const getNum = id => parseFloat(document.getElementById(id).value) || 0
-const getText = id => document.getElementById(id).value.trim()
-const toRate = v => v/100
 
 function calcular(){
 
-  const custo = r2(getNum('custo'))
-  const precoManualDigitado = document.getElementById('precoManual').value !== ''
-  const precoManual = r2(getNum('precoManual'))
+let custo = r2(Number(custoInput.value)||0)
+let precoManual = Number(precoManualInput.value)||0
+let lucro = Number(lucroPadrao.value)/100
 
-  const lucroPadrao = toRate(getNum('lucroPadrao'))
-  const pontosPorReal = getNum('pontosPorReal')
+let gateway = Number(gatewayInput.value)/100
+let imposto = Number(impostoInput.value)/100
+let sistema = Number(sistemaInput.value)/100
+let fundo = Number(fundoInput.value)/100
 
-  const gateway = toRate(getNum('gateway'))
-  const imposto = toRate(getNum('imposto'))
-  const sistema = toRate(getNum('sistema'))
-  const fundo = toRate(getNum('fundo'))
+let pontosPorReal = Number(pontosPorRealInput.value)
 
-  const n1 = toRate(getNum('n1'))
-  const n2 = toRate(getNum('n2'))
-  const n3 = toRate(getNum('n3'))
-  const n4 = toRate(getNum('n4'))
-  const n5 = toRate(getNum('n5'))
-  const n6 = toRate(getNum('n6'))
-  const n7 = toRate(getNum('n7'))
+let n1v = Number(n1.value)/100
+let n2v = Number(n2.value)/100
+let n3v = Number(n3.value)/100
+let n4v = Number(n4.value)/100
+let n5v = Number(n5.value)/100
+let n6v = Number(n6.value)/100
+let n7v = Number(n7.value)/100
 
-  const payoutMax = toRate(getNum('payoutMax'))
-  const margemMin = toRate(getNum('margemMin'))
+let payoutMax = Number(payoutMaxInput.value)/100
+let margemMin = Number(margemMinInput.value)/100
 
-  const bonusPercent = n1+n2+n3+n4+n5+n6+n7
+let bonus = n1v+n2v+n3v+n4v+n5v+n6v+n7v
 
-  const denominador =
-    1 - gateway - imposto -
-    ((1 - gateway - imposto) * (bonusPercent + fundo + sistema))
+let denom = 1 - gateway - imposto - ((1-gateway-imposto)*(bonus+fundo+sistema))
 
-  const precoSugerido = r2(
-    custo > 0 && denominador > 0
-      ? (custo * (1 + lucroPadrao)) / denominador
-      : 0
-  )
+let precoSugerido = r2((custo*(1+lucro))/denom)
 
-  const precoBase = precoManualDigitado && precoManual > 0 ? precoManual : precoSugerido
+let precoBase = precoManual>0 ? precoManual : precoSugerido
+let precoFinal = arredondarCentavos(precoBase)
 
-  // 🔥 AQUI SUA REGRA DE CENTAVOS
-  const precoFinal = arredondarCentavos(precoBase)
+let baseLiquida = precoFinal*(1-gateway-imposto)
 
-  const baseLiquida = precoFinal * (1 - gateway - imposto)
+let pontos = Math.floor(precoFinal*pontosPorReal)
 
-  // pontos sempre inteiro
-  const pontos = Math.floor(precoFinal * pontosPorReal)
+let fundoV = r2(baseLiquida*fundo)
+let bonusV = r2(baseLiquida*bonus)
+let sistemaV = r2(baseLiquida*sistema)
 
-  const fundoValor = r2(baseLiquida * fundo)
-  const bonusUnilevel = r2(baseLiquida * bonusPercent)
-  const sistemaValor = r2(baseLiquida * sistema)
+let lucroLiquido = r2(
+precoFinal - custo -
+(precoFinal*gateway) -
+(precoFinal*imposto) -
+bonusV - fundoV - sistemaV
+)
 
-  const n1Valor = r2(baseLiquida * n1)
-  const n2Valor = r2(baseLiquida * n2)
-  const n3Valor = r2(baseLiquida * n3)
-  const n4Valor = r2(baseLiquida * n4)
-  const n5Valor = r2(baseLiquida * n5)
-  const n6Valor = r2(baseLiquida * n6)
-  const n7Valor = r2(baseLiquida * n7)
+let payoutTotal = r2(fundoV+bonusV+sistemaV)
+let payoutPercent = payoutTotal/precoFinal
+let margemLiquida = lucroLiquido/precoFinal
 
-  const lucroLiquido = r2(
-    precoFinal -
-    custo -
-    (precoFinal * gateway) -
-    (precoFinal * imposto) -
-    bonusUnilevel -
-    fundoValor -
-    sistemaValor
-  )
+precoSugeridoEl.innerText = "R$ "+precoSugerido.toFixed(2)
+precoFinalEl.innerText = "R$ "+precoFinal.toFixed(2)
+pontosEl.innerText = pontos
+lucroLiquidoEl.innerText = "R$ "+lucroLiquido.toFixed(2)
+payoutTotalEl.innerText = "R$ "+payoutTotal.toFixed(2)
+payoutPercentEl.innerText = (payoutPercent*100).toFixed(2)+"%"
+margemLiquidaEl.innerText = (margemLiquida*100).toFixed(2)+"%"
 
-  const payoutTotal = r2(fundoValor + bonusUnilevel + sistemaValor)
-  const payoutPercent = precoFinal > 0 ? payoutTotal / precoFinal : 0
-  const margemLiquida = precoFinal > 0 ? lucroLiquido / precoFinal : 0
+if(lucroLiquido<0 || payoutPercent>payoutMax){
+status.className="danger"
+status.innerText="Risco"
+}
+else if(payoutPercent>0.35 || margemLiquida<margemMin){
+status.className="warning"
+status.innerText="Atenção"
+}
+else{
+status.className="success"
+status.innerText="Saudável"
+}
 
-  // STATUS
-  let statusClasse = 'success'
-  let statusTitulo = 'Saudável'
-  let statusTexto = 'Produto saudável'
+return {
+produto:produto.value,
+custo,
+precoSugerido,
+precoManual,
+precoFinal,
+lucroLiquido,
+payoutTotal,
+pontos
+}
 
-  if (lucroLiquido < 0 || payoutPercent > payoutMax) {
-    statusClasse = 'danger'
-    statusTitulo = 'Risco'
-    statusTexto = 'Prejuízo ou payout alto'
-  } else if (payoutPercent > 0.35 || margemLiquida < margemMin) {
-    statusClasse = 'warning'
-    statusTitulo = 'Atenção'
-    statusTexto = 'Margem apertada'
-  }
-
-  // UI
-  document.getElementById('precoSugerido').textContent = currency.format(precoSugerido)
-  document.getElementById('precoFinal').textContent = currency.format(precoFinal)
-  document.getElementById('pontosResumo').textContent = inteiro.format(pontos)
-  document.getElementById('lucroLiquido').textContent = currency.format(lucroLiquido)
-  document.getElementById('margemLiquida').textContent = percent.format(margemLiquida*100)+"%"
-  document.getElementById('payoutTotal').textContent = currency.format(payoutTotal)
-  document.getElementById('payoutPercent').textContent = percent.format(payoutPercent*100)+"%"
-
-  document.getElementById('pontos').textContent = inteiro.format(pontos)
-  document.getElementById('fundoValor').textContent = currency.format(fundoValor)
-  document.getElementById('bonusUnilevelValor').textContent = currency.format(bonusUnilevel)
-  document.getElementById('n1Valor').textContent = currency.format(n1Valor)
-  document.getElementById('n2Valor').textContent = currency.format(n2Valor)
-  document.getElementById('n3Valor').textContent = currency.format(n3Valor)
-  document.getElementById('n4Valor').textContent = currency.format(n4Valor)
-  document.getElementById('n5Valor').textContent = currency.format(n5Valor)
-  document.getElementById('n6Valor').textContent = currency.format(n6Valor)
-  document.getElementById('n7Valor').textContent = currency.format(n7Valor)
-
-  document.getElementById('statusBox').className = 'status-box '+statusClasse
-  document.getElementById('statusBox').innerHTML = statusTitulo+"<small>"+statusTexto+"</small>"
-
-  return {
-    destino: 'ProdutosEHistorico',
-    produto: getText('produto') || 'Sem nome',
-    custo,
-    precoSugerido,
-    precoManual: precoManualDigitado ? precoManual : '',
-    precoFinal,
-    lucroLiquido,
-    payoutTotal,
-    pontos,
-    fundoValor,
-    bonusUnilevel,
-    n1: n1Valor,
-    n2: n2Valor,
-    n3: n3Valor,
-    n4: n4Valor,
-    n5: n5Valor,
-    n6: n6Valor,
-    n7: n7Valor,
-    payoutPercent,
-    margemLiquida,
-    status: statusTitulo
-  }
 }
 
 async function salvar(){
-  const data = calcular()
 
-  await fetch(WORKER_URL,{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify(data)
-  })
+let data = calcular()
 
-  alert("Salvo na planilha")
+await fetch(API,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify(data)
+})
+
+alert("Salvo na planilha")
 }
 
 document.querySelectorAll("input").forEach(i=>{
-  i.addEventListener("input",calcular)
+i.addEventListener("input",calcular)
 })
 
+const custoInput = document.getElementById("custo")
+const precoManualInput = document.getElementById("precoManual")
+const precoSugeridoEl = document.getElementById("precoSugerido")
+const precoFinalEl = document.getElementById("precoFinal")
+const pontosEl = document.getElementById("pontos")
+const lucroLiquidoEl = document.getElementById("lucroLiquido")
+const payoutTotalEl = document.getElementById("payoutTotal")
+const payoutPercentEl = document.getElementById("payoutPercent")
+const margemLiquidaEl = document.getElementById("margemLiquida")
+const status = document.getElementById("status")
+
 calcular()
+
 </script>
+
+</body>
+</html>
