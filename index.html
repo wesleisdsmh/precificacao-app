@@ -1,4 +1,482 @@
 <!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Precificação</title>
+  <style>
+    :root {
+      --bg: #e5e7eb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #f67900;
+      --primary-2: #d96500;
+      --secondary: #5815ae;
+      --success: #15803d;
+      --warning: #b45309;
+      --danger: #b91c1c;
+      --border: #e5e7eb;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #dbeafe 0%, #e5e7eb 100%);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #5815ae, #f67900);
+      color: white;
+      border-radius: 26px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+
+    .hero h1 { margin: 0 0 8px; font-size: 32px; }
+    .hero p { margin: 0; opacity: 0.92; line-height: 1.5; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 20px;
+    }
+
+    .card {
+      grid-column: span 12;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: var(--shadow);
+      transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .success-border {
+      border: 2px solid #16a34a;
+      box-shadow: 0 0 0 3px rgba(22,163,74,0.15), var(--shadow);
+    }
+
+    .warning-border {
+      border: 2px solid #f67900;
+      box-shadow: 0 0 0 3px rgba(246,121,0,0.15), var(--shadow);
+    }
+
+    .danger-border {
+      border: 2px solid #dc2626;
+      box-shadow: 0 0 0 3px rgba(220,38,38,0.15), var(--shadow);
+    }
+
+    .card h2 { margin: 0 0 6px; font-size: 22px; }
+    .card p.section-desc { margin: 0 0 20px; color: var(--muted); font-size: 14px; }
+
+    .span-7 { grid-column: span 7; }
+    .span-5 { grid-column: span 5; }
+    .span-6 { grid-column: span 6; }
+    .span-12 { grid-column: span 12; }
+
+    .fields {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .fields-4 {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 8px; }
+    label { font-size: 14px; font-weight: 700; }
+
+    input {
+      width: 100%;
+      padding: 14px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 14px;
+      font-size: 15px;
+      outline: none;
+      transition: 0.2s border-color, 0.2s box-shadow;
+      background: white;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(246, 121, 0, 0.14);
+    }
+
+    .hint { font-size: 12px; color: var(--muted); }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .metric {
+      background: #f1f5f9;
+      border: 1px solid #d1d5db;
+      border-radius: 16px;
+      padding: 16px;
+      transition: box-shadow 0.2s ease;
+    }
+
+    .success-border .metric { box-shadow: 0 0 0 2px rgba(22,163,74,0.15) inset; }
+    .warning-border .metric { box-shadow: 0 0 0 2px rgba(246,121,0,0.15) inset; }
+    .danger-border .metric { box-shadow: 0 0 0 2px rgba(220,38,38,0.15) inset; }
+
+    .metric .label { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+    .metric .value { font-size: 26px; font-weight: 700; }
+
+    .status-box {
+      margin-top: 18px;
+      border-radius: 18px;
+      padding: 18px;
+      font-weight: 700;
+      font-size: 18px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+    }
+
+    .status-box:hover { transform: translateY(-1px); filter: brightness(1.03); }
+    .status-box small { display: block; margin-top: 8px; font-size: 13px; font-weight: 500; opacity: 0.95; }
+
+    .success { background: linear-gradient(135deg, #16a34a, #15803d); color: #ffffff; }
+    .warning { background: linear-gradient(135deg, #f67900, #d97706); color: #ffffff; }
+    .danger { background: linear-gradient(135deg, #dc2626, #b91c1c); color: #ffffff; }
+    .success small, .warning small, .danger small { color: rgba(255, 255, 255, 0.92); }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    th { color: var(--muted); font-weight: 700; }
+
+    .toolbar { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:disabled { opacity: 0.7; cursor: not-allowed; }
+
+    .btn-primary { background: linear-gradient(135deg, #f67900, #5815ae); color: white; }
+    .btn-primary:hover { background: linear-gradient(135deg, #d96500, #4a1194); }
+    .btn-secondary { background: #e5e7eb; color: #111827; }
+    .btn-market { background: linear-gradient(135deg, #5815ae, #7c3aed); color: white; }
+
+    .tag {
+      display: inline-block;
+      background: linear-gradient(135deg, #5815ae, #f67900);
+      color: white;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    .market-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .market-box {
+      background: #f8fafc;
+      border: 1px solid #d1d5db;
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .market-box h3 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
+    .market-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 14px;
+    }
+
+    .market-row:last-child { border-bottom: 0; }
+    .market-row strong { font-size: 15px; }
+    .market-error { color: #b91c1c; font-size: 14px; line-height: 1.4; }
+    .market-muted { color: var(--muted); font-size: 14px; }
+
+    @media (max-width: 960px) {
+      .span-7, .span-5, .span-6, .span-12 { grid-column: span 12; }
+      .fields, .summary, .fields-4, .market-grid { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="hero">
+      <h1>Sistema de Precificação</h1>
+      <p>Preencha os dados do produto, consulte o mercado, confira a viabilidade e clique em Salvar produto para gravar na aba Produtos e no Histórico da planilha.</p>
+    </section>
+
+    <div class="grid">
+      <section class="card span-7">
+        <span class="tag">Precificação do produto</span>
+        <h2>Dados principais</h2>
+        <p class="section-desc">Preencha os dados, consulte o mercado se quiser e salve apenas quando quiser registrar o produto na planilha.</p>
+
+        <div class="fields">
+          <div class="field">
+            <label for="produto">Produto</label>
+            <input id="produto" type="text" placeholder="Ex.: Shampoo Premium" />
+          </div>
+          <div class="field">
+            <label for="custo">Custo (R$)</label>
+            <input id="custo" type="number" step="0.01" value="100" />
+          </div>
+          <div class="field">
+            <label for="precoManual">Preço manual (R$)</label>
+            <input id="precoManual" type="number" step="0.01" placeholder="Opcional" />
+            <div class="hint">Se preencher, ele substitui o preço sugerido.</div>
+          </div>
+          <div class="field">
+            <label for="lucroPadrao">Lucro padrão (% sobre custo)</label>
+            <input id="lucroPadrao" type="number" step="0.01" value="20" />
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <button class="btn-primary" id="salvarProdutoBtn">Salvar produto</button>
+          <button class="btn-market" id="consultarMercadoBtn">Consultar mercado</button>
+          <button class="btn-secondary" id="limparBtn">Limpar campos</button>
+        </div>
+      </section>
+
+      <section class="card span-5" id="resultadoCard">
+        <span class="tag">Resultado</span>
+        <h2>Resumo financeiro</h2>
+        <p class="section-desc">Baseado na sua lógica atual de planilha.</p>
+
+        <div class="summary">
+          <div class="metric"><div class="label">Preço sugerido</div><div class="value" id="precoSugerido">R$ 0,00</div></div>
+          <div class="metric"><div class="label">Preço final</div><div class="value" id="precoFinal">R$ 0,00</div></div>
+          <div class="metric"><div class="label">Lucro líquido</div><div class="value" id="lucroLiquido">R$ 0,00</div></div>
+          <div class="metric"><div class="label">Margem líquida</div><div class="value" id="margemLiquida">0,00%</div></div>
+          <div class="metric"><div class="label">Payout total</div><div class="value" id="payoutTotal">R$ 0,00</div></div>
+          <div class="metric"><div class="label">Payout %</div><div class="value" id="payoutPercent">0,00%</div></div>
+        </div>
+
+        <div id="statusBox" class="status-box success">
+          Saudável
+          <small>Produto dentro da margem e payout aceitáveis.</small>
+        </div>
+      </section>
+
+      <section class="card span-12" id="mercadoCard">
+        <span class="tag">Consulta de mercado</span>
+        <h2>Faixa de preço encontrada</h2>
+        <p class="section-desc">Clique em “Consultar mercado” para pesquisar pelo nome do produto. Mercado Livre funciona sem chave. SerpApi aparece quando a chave estiver configurada no Worker.</p>
+
+        <div class="market-grid">
+          <div class="market-box" id="mercadoLivreBox">
+            <h3>Mercado Livre</h3>
+            <p class="market-muted">Ainda não consultado.</p>
+          </div>
+          <div class="market-box" id="serpApiBox">
+            <h3>SerpApi / Google Shopping</h3>
+            <p class="market-muted">Ainda não consultado.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="card span-12">
+        <span class="tag">Configurações do modelo</span>
+        <h2>Parâmetros da operação</h2>
+        <p class="section-desc">Esses valores podem ser ajustados antes de salvar o produto.</p>
+
+        <div class="fields-4">
+          <div class="field"><label for="pontosPorReal">Pontos por real</label><input id="pontosPorReal" type="number" step="0.0001" value="0.30" /></div>
+          <div class="field"><label for="gateway">Gateway (%)</label><input id="gateway" type="number" step="0.01" value="4" /></div>
+          <div class="field"><label for="imposto">Imposto (%)</label><input id="imposto" type="number" step="0.01" value="12" /></div>
+          <div class="field"><label for="sistema">Sistema (% sobre líquido)</label><input id="sistema" type="number" step="0.01" value="5" /></div>
+          <div class="field"><label for="fundo">Fundo premiação (%)</label><input id="fundo" type="number" step="0.01" value="5" /></div>
+          <div class="field"><label for="n1">Nível 1 (%)</label><input id="n1" type="number" step="0.01" value="5" /></div>
+          <div class="field"><label for="n2">Nível 2 (%)</label><input id="n2" type="number" step="0.01" value="4" /></div>
+          <div class="field"><label for="n3">Nível 3 (%)</label><input id="n3" type="number" step="0.01" value="4" /></div>
+          <div class="field"><label for="n4">Nível 4 (%)</label><input id="n4" type="number" step="0.01" value="2" /></div>
+          <div class="field"><label for="n5">Nível 5 (%)</label><input id="n5" type="number" step="0.01" value="2" /></div>
+          <div class="field"><label for="n6">Nível 6 (%)</label><input id="n6" type="number" step="0.01" value="2" /></div>
+          <div class="field"><label for="n7">Nível 7 (%)</label><input id="n7" type="number" step="0.01" value="1" /></div>
+          <div class="field"><label for="payoutMax">Payout máximo aceitável (%)</label><input id="payoutMax" type="number" step="0.01" value="45" /></div>
+          <div class="field"><label for="margemMin">Margem líquida mínima (%)</label><input id="margemMin" type="number" step="0.01" value="10" /></div>
+        </div>
+      </section>
+
+      <section class="card span-6">
+        <span class="tag">Detalhamento</span>
+        <h2>Distribuição do produto</h2>
+        <table>
+          <tbody>
+            <tr><th>Pontos</th><td id="pontos">0</td></tr>
+            <tr><th>Fundo premiação</th><td id="fundoValor">R$ 0,00</td></tr>
+            <tr><th>Bônus Unilevel</th><td id="bonusUnilevelValor">R$ 0,00</td></tr>
+            <tr><th>Nível 1</th><td id="n1Valor">R$ 0,00</td></tr>
+            <tr><th>Nível 2</th><td id="n2Valor">R$ 0,00</td></tr>
+            <tr><th>Nível 3</th><td id="n3Valor">R$ 0,00</td></tr>
+            <tr><th>Nível 4</th><td id="n4Valor">R$ 0,00</td></tr>
+            <tr><th>Nível 5</th><td id="n5Valor">R$ 0,00</td></tr>
+            <tr><th>Nível 6</th><td id="n6Valor">R$ 0,00</td></tr>
+            <tr><th>Nível 7</th><td id="n7Valor">R$ 0,00</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card span-6">
+        <span class="tag">Histórico</span>
+        <h2>Últimos produtos salvos</h2>
+        <p class="section-desc">Mostra os produtos salvos nesta sessão. A gravação real fica na planilha.</p>
+        <table>
+          <thead><tr><th>Produto</th><th>Preço final</th><th>Lucro líquido</th></tr></thead>
+          <tbody id="historicoBody"><tr><td colspan="3" style="color:#6b7280;">Nenhum produto salvo ainda.</td></tr></tbody>
+        </table>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const WORKER_URL = "https://precificacao-api.wesleisdsmh.workers.dev";
+
+    const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+    const percent = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const inteiro = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
+
+    const ids = [
+      'produto','custo','precoManual','lucroPadrao','pontosPorReal','gateway','imposto','sistema','fundo',
+      'n1','n2','n3','n4','n5','n6','n7','payoutMax','margemMin'
+    ];
+
+    const getNum = (id) => parseFloat(document.getElementById(id).value) || 0;
+    const getText = (id) => document.getElementById(id).value.trim();
+    const toRate = (value) => value / 100;
+
+    function calcular() {
+      const custo = getNum('custo');
+      const precoManual = getNum('precoManual');
+      const lucroPadrao = toRate(getNum('lucroPadrao'));
+      const pontosPorReal = getNum('pontosPorReal');
+      const gateway = toRate(getNum('gateway'));
+      const imposto = toRate(getNum('imposto'));
+      const sistema = toRate(getNum('sistema'));
+      const fundo = toRate(getNum('fundo'));
+      const n1 = toRate(getNum('n1'));
+      const n2 = toRate(getNum('n2'));
+      const n3 = toRate(getNum('n3'));
+      const n4 = toRate(getNum('n4'));
+      const n5 = toRate(getNum('n5'));
+      const n6 = toRate(getNum('n6'));
+      const n7 = toRate(getNum('n7'));
+      const payoutMax = toRate(getNum('payoutMax'));
+      const margemMin = toRate(getNum('margemMin'));
+
+      const bonusUnilevelPercent = n1 + n2 + n3 + n4 + n5 + n6 + n7;
+      const denominador = 1 - gateway - imposto - ((1 - gateway - imposto) * (bonusUnilevelPercent + fundo + sistema));
+      const precoSugerido = custo > 0 && denominador > 0 ? (custo * (1 + lucroPadrao)) / denominador : 0;
+      const precoFinal = precoManual > 0 ? precoManual : precoSugerido;
+      const liquidoBase = precoFinal * (1 - gateway - imposto);
+
+      const pontosCalculado = precoFinal > 0 ? Math.round((precoFinal * pontosPorReal) * 10000) / 10000 : 0;
+      const pontos = Math.floor(pontosCalculado);
+
+      const fundoValor = liquidoBase * fundo;
+      const bonusUnilevel = liquidoBase * bonusUnilevelPercent;
+      const sistemaValor = liquidoBase * sistema;
+
+      const n1Valor = liquidoBase * n1;
+      const n2Valor = liquidoBase * n2;
+      const n3Valor = liquidoBase * n3;
+      const n4Valor = liquidoBase * n4;
+      const n5Valor = liquidoBase * n5;
+      const n6Valor = liquidoBase * n6;
+      const n7Valor = liquidoBase * n7;
+
+      const margemSobrePreco = precoFinal > 0 ? (precoFinal - custo) / precoFinal : 0;
+      const lucroLiquido = precoFinal - custo - (precoFinal * gateway) - (precoFinal * imposto) - bonusUnilevel - fundoValor - sistemaValor;
+      const payoutTotal = fundoValor + bonusUnilevel + sistemaValor;
+      const payoutPercent = precoFinal > 0 ? payoutTotal / precoFinal : 0;
+      const margemLiquida = precoFinal > 0 ? lucroLiquido / precoFinal : 0;
+
+      let statusClasse = 'success';
+      let statusTitulo = 'Saudável';
+      let statusTexto = 'Produto dentro da margem e payout aceitáveis.';
+
+      if (lucroLiquido < 0 || payoutPercent > payoutMax) {
+        statusClasse = 'danger';
+        statusTitulo = 'Risco';
+        statusTexto = 'Preço com risco financeiro. Reveja payout, margem ou custos.';
+      } else if (payoutPercent > 0.35 || margemLiquida < margemMin) {
+        statusClasse = 'warning';
+        statusTitulo = 'Atenção';
+        statusTexto = 'Produto viável, mas precisa de atenção nos indicadores.';
+      }
+
+      document.getElementById('precoSugerido').textContent = currency.format(precoSugerido || 0);
+      document.getElementById('precoFinal').textContent = currency.format(precoFinal || 0);
+      document.getElementById('lucroLiquido').textContent = currency.format(lucroLiquido || 0);
+      document.getElementById('margemLiquida').textContent = percent.format((margemLiquida || 0) * 100) + '%';
+      document.getElementById('payoutTotal').textContent = currency.format(payoutTotal || 0);
+      document.getElementById('payoutPercent').textContent = percent.format((payoutPercent || 0) * 100) + '%';
+      document.getElementById('pontos').textContent = inteiro.format(pontos || 0);
+      document.getElementById('fundoValor').textContent = currency.format(fundoValor || 0);
+      document.getElementById('bonusUnilevelValor').textContent = currency.format(bonusUnilevel || 0);
+      document.getElementById('n1Valor').textContent = currency.format(n1Valor || 0);
+      document.getElementById('n2Valor').textContent = currency.format(n2Valor || 0);
+      document.getElementById('n3Valor').textContent = currency.format(n3Valor || 0);
+      document.getElementById('n4Valor').textContent = currency.format(n4Valor || 0);
+      document.getElementById('n5Valor').textContent = currency.format(n5Valor || 0);
+      document.getElementById('n6Valor').textContent = currency.format(n6Valor || 0);
+      document.getElementById('n7Valor').textContent = currency.format(n7Valor || 0);
+
+      const statusBox = document.getElementById('statusBox');
+      const resultadoCard = document.getElementById('resultadoCard');
+      statusBox.className = 'status-box ' + statusClasse;
+      resultadoCard.className = 'card span-5 ' + statusClasse + '-border';
+      statusBox.innerHTML = `${statusTitulo}<small>${statusTexto}</small>`;
+
+      return {
+        destino: 'ProdutosEHistorico',
+        produto: getText('produto') || 'Sem nome',
+        custo,
+        precoManual: document.getElementById('precoManual').value === '' ? '' : precoManual,
+        precoSugerido,
+        precoFinal,
+        margemSobrePreco,
+        lucroLiquido,
+        payoutTotal,
+        pontos,
+        fundoValor,
+        bonusUnilevel,
+        n1: n1Valor,
+        n2: n2Valor,
+        n3: n3Valor,
         n4: n4Valor,
         n5: n5Valor,
         n6: n6Valor,
@@ -34,6 +512,60 @@
       if (!response.ok) throw new Error(await response.text());
       return response.json().catch(() => ({ ok: true }));
     }
+
+    function renderFonteMercado(containerId, dados) {
+      const box = document.getElementById(containerId);
+      if (!dados || !dados.ok) {
+        box.innerHTML = `
+          <h3>${dados?.fonte || 'Fonte'}</h3>
+          <p class="market-error">${dados?.erro || 'Não foi possível consultar esta fonte.'}</p>
+        `;
+        return;
+      }
+
+      box.innerHTML = `
+        <h3>${dados.fonte}</h3>
+        <div class="market-row"><span>Menor preço</span><strong>${currency.format(dados.menor || 0)}</strong></div>
+        <div class="market-row"><span>Maior preço</span><strong>${currency.format(dados.maior || 0)}</strong></div>
+        <div class="market-row"><span>Preço médio</span><strong>${currency.format(dados.media || 0)}</strong></div>
+        <div class="market-row"><span>Itens analisados</span><strong>${dados.quantidade || 0}</strong></div>
+      `;
+    }
+
+    document.getElementById('consultarMercadoBtn').addEventListener('click', async () => {
+      const produto = getText('produto');
+      if (!produto) {
+        alert('Digite o nome do produto antes de consultar o mercado.');
+        return;
+      }
+
+      const btn = document.getElementById('consultarMercadoBtn');
+      const textoOriginal = btn.textContent;
+      btn.textContent = 'Consultando...';
+      btn.disabled = true;
+
+      document.getElementById('mercadoLivreBox').innerHTML = '<h3>Mercado Livre</h3><p class="market-muted">Consultando...</p>';
+      document.getElementById('serpApiBox').innerHTML = '<h3>SerpApi / Google Shopping</h3><p class="market-muted">Consultando...</p>';
+
+      try {
+        const response = await fetch(WORKER_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ acao: 'consultarMercado', produto })
+        });
+
+        const dados = await response.json();
+        renderFonteMercado('mercadoLivreBox', dados.mercadoLivre);
+        renderFonteMercado('serpApiBox', dados.serpApi);
+      } catch (error) {
+        console.error(error);
+        document.getElementById('mercadoLivreBox').innerHTML = '<h3>Mercado Livre</h3><p class="market-error">Erro ao consultar mercado.</p>';
+        document.getElementById('serpApiBox').innerHTML = '<h3>SerpApi / Google Shopping</h3><p class="market-error">Erro ao consultar mercado.</p>';
+      } finally {
+        btn.textContent = textoOriginal;
+        btn.disabled = false;
+      }
+    });
 
     document.getElementById('salvarProdutoBtn').addEventListener('click', async () => {
       const produto = calcular();
