@@ -179,7 +179,6 @@
     .btn-primary { background: linear-gradient(135deg, #f67900, #5815ae); color: white; }
     .btn-primary:hover { background: linear-gradient(135deg, #d96500, #4a1194); }
     .btn-secondary { background: #e5e7eb; color: #111827; }
-    .btn-market { background: linear-gradient(135deg, #5815ae, #7c3aed); color: white; }
 
     .tag {
       display: inline-block;
@@ -192,41 +191,9 @@
       margin-bottom: 14px;
     }
 
-    .market-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .market-box {
-      background: #f8fafc;
-      border: 1px solid #d1d5db;
-      border-radius: 16px;
-      padding: 16px;
-    }
-
-    .market-box h3 {
-      margin: 0 0 12px;
-      font-size: 18px;
-    }
-
-    .market-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 8px 0;
-      border-bottom: 1px solid #e5e7eb;
-      font-size: 14px;
-    }
-
-    .market-row:last-child { border-bottom: 0; }
-    .market-row strong { font-size: 15px; }
-    .market-error { color: #b91c1c; font-size: 14px; line-height: 1.4; }
-    .market-muted { color: var(--muted); font-size: 14px; }
-
     @media (max-width: 960px) {
       .span-7, .span-5, .span-6, .span-12 { grid-column: span 12; }
-      .fields, .summary, .fields-4, .market-grid { grid-template-columns: 1fr; }
+      .fields, .summary, .fields-4 { grid-template-columns: 1fr; }
       .hero h1 { font-size: 26px; }
     }
   </style>
@@ -235,14 +202,14 @@
   <div class="container">
     <section class="hero">
       <h1>Sistema de Precificação</h1>
-      <p>Preencha os dados do produto, consulte o mercado, confira a viabilidade e clique em Salvar produto para gravar na aba Produtos e no Histórico da planilha.</p>
+      <p>Preencha os dados do produto, confira a viabilidade e clique em Salvar produto para gravar na aba Produtos e no Histórico da planilha.</p>
     </section>
 
     <div class="grid">
       <section class="card span-7">
         <span class="tag">Precificação do produto</span>
         <h2>Dados principais</h2>
-        <p class="section-desc">Preencha os dados, consulte o mercado se quiser e salve apenas quando quiser registrar o produto na planilha.</p>
+        <p class="section-desc">Preencha os dados e salve apenas quando quiser registrar o produto na planilha.</p>
 
         <div class="fields">
           <div class="field">
@@ -266,7 +233,6 @@
 
         <div class="toolbar">
           <button class="btn-primary" id="salvarProdutoBtn">Salvar produto</button>
-          <button class="btn-market" id="consultarMercadoBtn">Consultar mercado</button>
           <button class="btn-secondary" id="limparBtn">Limpar campos</button>
         </div>
       </section>
@@ -279,32 +245,15 @@
         <div class="summary">
           <div class="metric"><div class="label">Preço sugerido</div><div class="value" id="precoSugerido">R$ 0,00</div></div>
           <div class="metric"><div class="label">Preço final</div><div class="value" id="precoFinal">R$ 0,00</div></div>
+          <div class="metric"><div class="label">Pontos do produto</div><div class="value" id="pontosResumo">0</div></div>
           <div class="metric"><div class="label">Lucro líquido</div><div class="value" id="lucroLiquido">R$ 0,00</div></div>
           <div class="metric"><div class="label">Margem líquida</div><div class="value" id="margemLiquida">0,00%</div></div>
           <div class="metric"><div class="label">Payout total</div><div class="value" id="payoutTotal">R$ 0,00</div></div>
-          <div class="metric"><div class="label">Payout %</div><div class="value" id="payoutPercent">0,00%</div></div>
         </div>
 
         <div id="statusBox" class="status-box success">
           Saudável
           <small>Produto dentro da margem e payout aceitáveis.</small>
-        </div>
-      </section>
-
-      <section class="card span-12" id="mercadoCard">
-        <span class="tag">Consulta de mercado</span>
-        <h2>Faixa de preço encontrada</h2>
-        <p class="section-desc">Clique em “Consultar mercado” para pesquisar pelo nome do produto. Mercado Livre funciona sem chave. SerpApi aparece quando a chave estiver configurada no Worker.</p>
-
-        <div class="market-grid">
-          <div class="market-box" id="mercadoLivreBox">
-            <h3>Mercado Livre</h3>
-            <p class="market-muted">Ainda não consultado.</p>
-          </div>
-          <div class="market-box" id="serpApiBox">
-            <h3>SerpApi / Google Shopping</h3>
-            <p class="market-muted">Ainda não consultado.</p>
-          </div>
         </div>
       </section>
 
@@ -337,6 +286,7 @@
         <table>
           <tbody>
             <tr><th>Pontos</th><td id="pontos">0</td></tr>
+            <tr><th>Payout %</th><td id="payoutPercent">0,00%</td></tr>
             <tr><th>Fundo premiação</th><td id="fundoValor">R$ 0,00</td></tr>
             <tr><th>Bônus Unilevel</th><td id="bonusUnilevelValor">R$ 0,00</td></tr>
             <tr><th>Nível 1</th><td id="n1Valor">R$ 0,00</td></tr>
@@ -377,10 +327,17 @@
     const getNum = (id) => parseFloat(document.getElementById(id).value) || 0;
     const getText = (id) => document.getElementById(id).value.trim();
     const toRate = (value) => value / 100;
+    const money2 = (value) => Math.round((Number(value) || 0) * 100) / 100;
+    const pct = (value) => Number(value) || 0;
+
+    function arredondarPontos(valor) {
+      return Math.round(Number(valor) || 0);
+    }
 
     function calcular() {
-      const custo = getNum('custo');
-      const precoManual = getNum('precoManual');
+      const custo = money2(getNum('custo'));
+      const precoManualDigitado = document.getElementById('precoManual').value !== '';
+      const precoManual = money2(getNum('precoManual'));
       const lucroPadrao = toRate(getNum('lucroPadrao'));
       const pontosPorReal = getNum('pontosPorReal');
       const gateway = toRate(getNum('gateway'));
@@ -399,30 +356,29 @@
 
       const bonusUnilevelPercent = n1 + n2 + n3 + n4 + n5 + n6 + n7;
       const denominador = 1 - gateway - imposto - ((1 - gateway - imposto) * (bonusUnilevelPercent + fundo + sistema));
-      const precoSugerido = custo > 0 && denominador > 0 ? (custo * (1 + lucroPadrao)) / denominador : 0;
-      const precoFinal = precoManual > 0 ? precoManual : precoSugerido;
+      const precoSugerido = money2(custo > 0 && denominador > 0 ? (custo * (1 + lucroPadrao)) / denominador : 0);
+      const precoFinal = money2(precoManualDigitado && precoManual > 0 ? precoManual : precoSugerido);
       const liquidoBase = precoFinal * (1 - gateway - imposto);
 
-      const pontosCalculado = precoFinal > 0 ? Math.round((precoFinal * pontosPorReal) * 10000) / 10000 : 0;
-      const pontos = Math.floor(pontosCalculado);
+      const pontos = arredondarPontos(precoFinal * pontosPorReal);
 
-      const fundoValor = liquidoBase * fundo;
-      const bonusUnilevel = liquidoBase * bonusUnilevelPercent;
-      const sistemaValor = liquidoBase * sistema;
+      const fundoValor = money2(liquidoBase * fundo);
+      const bonusUnilevel = money2(liquidoBase * bonusUnilevelPercent);
+      const sistemaValor = money2(liquidoBase * sistema);
 
-      const n1Valor = liquidoBase * n1;
-      const n2Valor = liquidoBase * n2;
-      const n3Valor = liquidoBase * n3;
-      const n4Valor = liquidoBase * n4;
-      const n5Valor = liquidoBase * n5;
-      const n6Valor = liquidoBase * n6;
-      const n7Valor = liquidoBase * n7;
+      const n1Valor = money2(liquidoBase * n1);
+      const n2Valor = money2(liquidoBase * n2);
+      const n3Valor = money2(liquidoBase * n3);
+      const n4Valor = money2(liquidoBase * n4);
+      const n5Valor = money2(liquidoBase * n5);
+      const n6Valor = money2(liquidoBase * n6);
+      const n7Valor = money2(liquidoBase * n7);
 
-      const margemSobrePreco = precoFinal > 0 ? (precoFinal - custo) / precoFinal : 0;
-      const lucroLiquido = precoFinal - custo - (precoFinal * gateway) - (precoFinal * imposto) - bonusUnilevel - fundoValor - sistemaValor;
-      const payoutTotal = fundoValor + bonusUnilevel + sistemaValor;
-      const payoutPercent = precoFinal > 0 ? payoutTotal / precoFinal : 0;
-      const margemLiquida = precoFinal > 0 ? lucroLiquido / precoFinal : 0;
+      const margemSobrePreco = pct(precoFinal > 0 ? (precoFinal - custo) / precoFinal : 0);
+      const lucroLiquido = money2(precoFinal - custo - (precoFinal * gateway) - (precoFinal * imposto) - bonusUnilevel - fundoValor - sistemaValor);
+      const payoutTotal = money2(fundoValor + bonusUnilevel + sistemaValor);
+      const payoutPercent = pct(precoFinal > 0 ? payoutTotal / precoFinal : 0);
+      const margemLiquida = pct(precoFinal > 0 ? lucroLiquido / precoFinal : 0);
 
       let statusClasse = 'success';
       let statusTitulo = 'Saudável';
@@ -438,22 +394,23 @@
         statusTexto = 'Produto viável, mas precisa de atenção nos indicadores.';
       }
 
-      document.getElementById('precoSugerido').textContent = currency.format(precoSugerido || 0);
-      document.getElementById('precoFinal').textContent = currency.format(precoFinal || 0);
-      document.getElementById('lucroLiquido').textContent = currency.format(lucroLiquido || 0);
-      document.getElementById('margemLiquida').textContent = percent.format((margemLiquida || 0) * 100) + '%';
-      document.getElementById('payoutTotal').textContent = currency.format(payoutTotal || 0);
-      document.getElementById('payoutPercent').textContent = percent.format((payoutPercent || 0) * 100) + '%';
-      document.getElementById('pontos').textContent = inteiro.format(pontos || 0);
-      document.getElementById('fundoValor').textContent = currency.format(fundoValor || 0);
-      document.getElementById('bonusUnilevelValor').textContent = currency.format(bonusUnilevel || 0);
-      document.getElementById('n1Valor').textContent = currency.format(n1Valor || 0);
-      document.getElementById('n2Valor').textContent = currency.format(n2Valor || 0);
-      document.getElementById('n3Valor').textContent = currency.format(n3Valor || 0);
-      document.getElementById('n4Valor').textContent = currency.format(n4Valor || 0);
-      document.getElementById('n5Valor').textContent = currency.format(n5Valor || 0);
-      document.getElementById('n6Valor').textContent = currency.format(n6Valor || 0);
-      document.getElementById('n7Valor').textContent = currency.format(n7Valor || 0);
+      document.getElementById('precoSugerido').textContent = currency.format(precoSugerido);
+      document.getElementById('precoFinal').textContent = currency.format(precoFinal);
+      document.getElementById('pontosResumo').textContent = inteiro.format(pontos);
+      document.getElementById('lucroLiquido').textContent = currency.format(lucroLiquido);
+      document.getElementById('margemLiquida').textContent = percent.format(margemLiquida * 100) + '%';
+      document.getElementById('payoutTotal').textContent = currency.format(payoutTotal);
+      document.getElementById('payoutPercent').textContent = percent.format(payoutPercent * 100) + '%';
+      document.getElementById('pontos').textContent = inteiro.format(pontos);
+      document.getElementById('fundoValor').textContent = currency.format(fundoValor);
+      document.getElementById('bonusUnilevelValor').textContent = currency.format(bonusUnilevel);
+      document.getElementById('n1Valor').textContent = currency.format(n1Valor);
+      document.getElementById('n2Valor').textContent = currency.format(n2Valor);
+      document.getElementById('n3Valor').textContent = currency.format(n3Valor);
+      document.getElementById('n4Valor').textContent = currency.format(n4Valor);
+      document.getElementById('n5Valor').textContent = currency.format(n5Valor);
+      document.getElementById('n6Valor').textContent = currency.format(n6Valor);
+      document.getElementById('n7Valor').textContent = currency.format(n7Valor);
 
       const statusBox = document.getElementById('statusBox');
       const resultadoCard = document.getElementById('resultadoCard');
@@ -465,7 +422,7 @@
         destino: 'ProdutosEHistorico',
         produto: getText('produto') || 'Sem nome',
         custo,
-        precoManual: document.getElementById('precoManual').value === '' ? '' : precoManual,
+        precoManual: precoManualDigitado ? precoManual : '',
         precoSugerido,
         precoFinal,
         margemSobrePreco,
@@ -512,60 +469,6 @@
       if (!response.ok) throw new Error(await response.text());
       return response.json().catch(() => ({ ok: true }));
     }
-
-    function renderFonteMercado(containerId, dados) {
-      const box = document.getElementById(containerId);
-      if (!dados || !dados.ok) {
-        box.innerHTML = `
-          <h3>${dados?.fonte || 'Fonte'}</h3>
-          <p class="market-error">${dados?.erro || 'Não foi possível consultar esta fonte.'}</p>
-        `;
-        return;
-      }
-
-      box.innerHTML = `
-        <h3>${dados.fonte}</h3>
-        <div class="market-row"><span>Menor preço</span><strong>${currency.format(dados.menor || 0)}</strong></div>
-        <div class="market-row"><span>Maior preço</span><strong>${currency.format(dados.maior || 0)}</strong></div>
-        <div class="market-row"><span>Preço médio</span><strong>${currency.format(dados.media || 0)}</strong></div>
-        <div class="market-row"><span>Itens analisados</span><strong>${dados.quantidade || 0}</strong></div>
-      `;
-    }
-
-    document.getElementById('consultarMercadoBtn').addEventListener('click', async () => {
-      const produto = getText('produto');
-      if (!produto) {
-        alert('Digite o nome do produto antes de consultar o mercado.');
-        return;
-      }
-
-      const btn = document.getElementById('consultarMercadoBtn');
-      const textoOriginal = btn.textContent;
-      btn.textContent = 'Consultando...';
-      btn.disabled = true;
-
-      document.getElementById('mercadoLivreBox').innerHTML = '<h3>Mercado Livre</h3><p class="market-muted">Consultando...</p>';
-      document.getElementById('serpApiBox').innerHTML = '<h3>SerpApi / Google Shopping</h3><p class="market-muted">Consultando...</p>';
-
-      try {
-        const response = await fetch(WORKER_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ acao: 'consultarMercado', produto })
-        });
-
-        const dados = await response.json();
-        renderFonteMercado('mercadoLivreBox', dados.mercadoLivre);
-        renderFonteMercado('serpApiBox', dados.serpApi);
-      } catch (error) {
-        console.error(error);
-        document.getElementById('mercadoLivreBox').innerHTML = '<h3>Mercado Livre</h3><p class="market-error">Erro ao consultar mercado.</p>';
-        document.getElementById('serpApiBox').innerHTML = '<h3>SerpApi / Google Shopping</h3><p class="market-error">Erro ao consultar mercado.</p>';
-      } finally {
-        btn.textContent = textoOriginal;
-        btn.disabled = false;
-      }
-    });
 
     document.getElementById('salvarProdutoBtn').addEventListener('click', async () => {
       const produto = calcular();
