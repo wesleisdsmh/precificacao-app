@@ -1,162 +1,78 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Precificação</title>
+        n4: n4Valor,
+        n5: n5Valor,
+        n6: n6Valor,
+        n7: n7Valor,
+        payoutPercent,
+        margemLiquida,
+        status: statusTitulo
+      };
+    }
 
-<style>
-body {
-  font-family: Arial;
-  background:#e5e7eb;
-  margin:0;
-  padding:20px;
-}
+    function carregarHistorico() {
+      const historico = JSON.parse(localStorage.getItem('historicoPrecificacao') || '[]');
+      const tbody = document.getElementById('historicoBody');
+      if (!historico.length) {
+        tbody.innerHTML = '<tr><td colspan="3" style="color:#6b7280;">Nenhum produto salvo ainda.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = historico.slice().reverse().map(item => `
+        <tr>
+          <td>${item.produto}</td>
+          <td>${currency.format(item.precoFinal || 0)}</td>
+          <td>${currency.format(item.lucroLiquido || 0)}</td>
+        </tr>
+      `).join('');
+    }
 
-.card {
-  background:white;
-  padding:20px;
-  border-radius:12px;
-  margin-bottom:20px;
-}
+    async function enviarParaPlanilha(payload) {
+      const response = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) throw new Error(await response.text());
+      return response.json().catch(() => ({ ok: true }));
+    }
 
-h2 {margin-top:0}
+    document.getElementById('salvarProdutoBtn').addEventListener('click', async () => {
+      const produto = calcular();
+      if (!produto.produto || produto.produto === 'Sem nome' || produto.precoFinal <= 0) {
+        alert('Preencha o nome do produto e o custo antes de salvar.');
+        return;
+      }
 
-input {
-  width:100%;
-  padding:10px;
-  margin-top:5px;
-  margin-bottom:10px;
-  border-radius:8px;
-  border:1px solid #ccc;
-}
+      const btn = document.getElementById('salvarProdutoBtn');
+      const textoOriginal = btn.textContent;
+      btn.textContent = 'Salvando...';
+      btn.disabled = true;
 
-button {
-  padding:12px;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-  font-weight:bold;
-}
+      try {
+        await enviarParaPlanilha(produto);
+        const historico = JSON.parse(localStorage.getItem('historicoPrecificacao') || '[]');
+        historico.push({ ...produto, atualizadoEm: new Date().toISOString() });
+        localStorage.setItem('historicoPrecificacao', JSON.stringify(historico.slice(-10)));
+        carregarHistorico();
+        alert('Produto salvo na aba Produtos e registrado no Histórico.');
+      } catch (error) {
+        console.error(error);
+        alert('Erro ao salvar na planilha. Verifique o Worker e o Apps Script.');
+      } finally {
+        btn.textContent = textoOriginal;
+        btn.disabled = false;
+      }
+    });
 
-.btn {
-  background:linear-gradient(135deg,#f67900,#5815ae);
-  color:white;
-}
+    document.getElementById('limparBtn').addEventListener('click', () => {
+      document.getElementById('produto').value = '';
+      document.getElementById('custo').value = '0';
+      document.getElementById('precoManual').value = '';
+      calcular();
+    });
 
-.metric {
-  margin:10px 0;
-}
-
-.big {
-  font-size:22px;
-  font-weight:bold;
-}
-
-.success {background:#16a34a;color:white;padding:10px;border-radius:10px}
-.warning {background:#f67900;color:white;padding:10px;border-radius:10px}
-.danger {background:#dc2626;color:white;padding:10px;border-radius:10px}
-
-</style>
-</head>
-
-<body>
-
-<div class="card">
-<h2>Precificação</h2>
-
-<label>Produto</label>
-<input id="produto">
-
-<label>Custo</label>
-<input id="custo" type="number" value="100">
-
-<label>Preço manual</label>
-<input id="precoManual" type="number">
-
-<label>Lucro %</label>
-<input id="lucro" type="number" value="20">
-
-<button class="btn" onclick="salvar()">Salvar produto</button>
-</div>
-
-<div class="card">
-<h2>Resultado</h2>
-
-<div class="metric">Preço sugerido: <span class="big" id="precoSugerido"></span></div>
-<div class="metric">Preço final: <span class="big" id="precoFinal"></span></div>
-<div class="metric">Pontos: <span class="big" id="pontos"></span></div>
-<div class="metric">Lucro líquido: <span class="big" id="lucroLiquido"></span></div>
-
-<div id="status"></div>
-</div>
-
-<script>
-const API = "https://precificacao-api.wesleisdsmh.workers.dev";
-
-function r2(v){return Math.round(v*100)/100}
-
-function calcular(){
-
-let custo = Number(document.getElementById("custo").value)||0
-let lucro = Number(document.getElementById("lucro").value)/100
-let precoManual = Number(document.getElementById("precoManual").value)||0
-
-let precoSugerido = r2(custo*(1+lucro))
-let precoFinal = r2(precoManual>0?precoManual:precoSugerido)
-
-let pontos = Math.floor(precoFinal*0.3)
-
-let lucroLiquido = r2(precoFinal - custo)
-
-document.getElementById("precoSugerido").innerText = "R$ "+precoSugerido.toFixed(2)
-document.getElementById("precoFinal").innerText = "R$ "+precoFinal.toFixed(2)
-document.getElementById("pontos").innerText = pontos
-document.getElementById("lucroLiquido").innerText = "R$ "+lucroLiquido.toFixed(2)
-
-let status = document.getElementById("status")
-
-if(lucroLiquido<=0){
-  status.className="danger"
-  status.innerText="Prejuízo"
-}else if(lucroLiquido<10){
-  status.className="warning"
-  status.innerText="Baixo lucro"
-}else{
-  status.className="success"
-  status.innerText="Saudável"
-}
-
-return {
-produto:document.getElementById("produto").value,
-custo,
-precoSugerido,
-precoManual,
-precoFinal,
-lucroLiquido,
-pontos
-}
-}
-
-async function salvar(){
-
-let data = calcular()
-
-await fetch(API,{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify(data)
-})
-
-alert("Salvo na planilha")
-}
-
-document.querySelectorAll("input").forEach(i=>{
-i.addEventListener("input",calcular)
-})
-
-calcular()
-</script>
-
+    ids.forEach(id => document.getElementById(id).addEventListener('input', calcular));
+    calcular();
+    carregarHistorico();
+  </script>
 </body>
 </html>
