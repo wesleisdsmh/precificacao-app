@@ -202,14 +202,14 @@
   <div class="container">
     <section class="hero">
       <h1>Sistema de Precificação</h1>
-      <p>Preencha os dados do produto, confira a viabilidade e clique em Salvar produto para gravar na aba Produtos e no Histórico da planilha.</p>
+      <p>Preencha os dados do produto, confira uma prévia da precificação e clique em Salvar produto para gravar na aba Produtos da planilha.</p>
     </section>
 
     <div class="grid">
       <section class="card span-7">
         <span class="tag">Precificação do produto</span>
         <h2>Dados principais</h2>
-        <p class="section-desc">Preencha os dados e salve apenas quando quiser registrar o produto na planilha.</p>
+        <p class="section-desc">Produto, Custo e Preço Manual serão enviados para a planilha. A aba Produtos recalcula automaticamente as demais colunas.</p>
 
         <div class="fields">
           <div class="field">
@@ -223,11 +223,12 @@
           <div class="field">
             <label for="precoManual">Preço manual (R$)</label>
             <input id="precoManual" type="number" step="0.01" placeholder="Opcional" />
-            <div class="hint">Se preencher, ele substitui o preço sugerido.</div>
+            <div class="hint">Se preencher, ele substitui o preço sugerido na planilha.</div>
           </div>
           <div class="field">
             <label for="lucroPadrao">Lucro padrão (% sobre custo)</label>
             <input id="lucroPadrao" type="number" step="0.01" value="20" />
+            <div class="hint">Usado apenas para prévia no painel. A planilha usa o valor da aba Config.</div>
           </div>
         </div>
 
@@ -240,7 +241,7 @@
       <section class="card span-5" id="resultadoCard">
         <span class="tag">Resultado</span>
         <h2>Resumo financeiro</h2>
-        <p class="section-desc">Baseado na sua lógica atual de planilha.</p>
+        <p class="section-desc">Prévia baseada nos parâmetros visíveis no painel.</p>
 
         <div class="summary">
           <div class="metric"><div class="label">Preço sugerido</div><div class="value" id="precoSugerido">R$ 0,00</div></div>
@@ -259,8 +260,8 @@
 
       <section class="card span-12">
         <span class="tag">Configurações do modelo</span>
-        <h2>Parâmetros da operação</h2>
-        <p class="section-desc">Esses valores podem ser ajustados antes de salvar o produto.</p>
+        <h2>Parâmetros para prévia</h2>
+        <p class="section-desc">Estes campos servem para visualizar uma prévia no painel. O cálculo definitivo fica na planilha, pela aba Config.</p>
 
         <div class="fields-4">
           <div class="field"><label for="pontosPorReal">Pontos por real</label><input id="pontosPorReal" type="number" step="0.0001" value="0.30" /></div>
@@ -301,11 +302,11 @@
       </section>
 
       <section class="card span-6">
-        <span class="tag">Histórico</span>
-        <h2>Últimos produtos salvos</h2>
-        <p class="section-desc">Mostra os produtos salvos nesta sessão. A gravação real fica na planilha.</p>
+        <span class="tag">Últimos salvos</span>
+        <h2>Produtos enviados nesta sessão</h2>
+        <p class="section-desc">Mostra apenas os produtos salvos neste navegador. A base principal fica na aba Produtos da planilha.</p>
         <table>
-          <thead><tr><th>Produto</th><th>Preço final</th><th>Lucro líquido</th></tr></thead>
+          <thead><tr><th>Produto</th><th>Custo</th><th>Preço manual</th></tr></thead>
           <tbody id="historicoBody"><tr><td colspan="3" style="color:#6b7280;">Nenhum produto salvo ainda.</td></tr></tbody>
         </table>
       </section>
@@ -328,7 +329,6 @@
     const getText = (id) => document.getElementById(id).value.trim();
     const toRate = (value) => value / 100;
     const money2 = (value) => Math.round((Number(value) || 0) * 100) / 100;
-    const pct = (value) => Number(value) || 0;
 
     function arredondarPontos(valor) {
       return Math.round(Number(valor) || 0);
@@ -374,11 +374,10 @@
       const n6Valor = money2(liquidoBase * n6);
       const n7Valor = money2(liquidoBase * n7);
 
-      const margemSobrePreco = pct(precoFinal > 0 ? (precoFinal - custo) / precoFinal : 0);
       const lucroLiquido = money2(precoFinal - custo - (precoFinal * gateway) - (precoFinal * imposto) - bonusUnilevel - fundoValor - sistemaValor);
       const payoutTotal = money2(fundoValor + bonusUnilevel + sistemaValor);
-      const payoutPercent = pct(precoFinal > 0 ? payoutTotal / precoFinal : 0);
-      const margemLiquida = pct(precoFinal > 0 ? lucroLiquido / precoFinal : 0);
+      const payoutPercent = precoFinal > 0 ? payoutTotal / precoFinal : 0;
+      const margemLiquida = precoFinal > 0 ? lucroLiquido / precoFinal : 0;
 
       let statusClasse = 'success';
       let statusTitulo = 'Saudável';
@@ -419,33 +418,14 @@
       statusBox.innerHTML = `${statusTitulo}<small>${statusTexto}</small>`;
 
       return {
-        destino: 'ProdutosEHistorico',
-        produto: getText('produto') || 'Sem nome',
+        produto: getText('produto'),
         custo,
-        precoManual: precoManualDigitado ? precoManual : '',
-        precoSugerido,
-        precoFinal,
-        margemSobrePreco,
-        lucroLiquido,
-        payoutTotal,
-        pontos,
-        fundoValor,
-        bonusUnilevel,
-        n1: n1Valor,
-        n2: n2Valor,
-        n3: n3Valor,
-        n4: n4Valor,
-        n5: n5Valor,
-        n6: n6Valor,
-        n7: n7Valor,
-        payoutPercent,
-        margemLiquida,
-        status: statusTitulo
+        precoManual: precoManualDigitado && precoManual > 0 ? precoManual : ''
       };
     }
 
     function carregarHistorico() {
-      const historico = JSON.parse(localStorage.getItem('historicoPrecificacao') || '[]');
+      const historico = JSON.parse(localStorage.getItem('produtosSalvosSessao') || '[]');
       const tbody = document.getElementById('historicoBody');
       if (!historico.length) {
         tbody.innerHTML = '<tr><td colspan="3" style="color:#6b7280;">Nenhum produto salvo ainda.</td></tr>';
@@ -454,8 +434,8 @@
       tbody.innerHTML = historico.slice().reverse().map(item => `
         <tr>
           <td>${item.produto}</td>
-          <td>${currency.format(item.precoFinal || 0)}</td>
-          <td>${currency.format(item.lucroLiquido || 0)}</td>
+          <td>${currency.format(item.custo || 0)}</td>
+          <td>${item.precoManual === '' ? '-' : currency.format(item.precoManual || 0)}</td>
         </tr>
       `).join('');
     }
@@ -472,7 +452,7 @@
 
     document.getElementById('salvarProdutoBtn').addEventListener('click', async () => {
       const produto = calcular();
-      if (!produto.produto || produto.produto === 'Sem nome' || produto.precoFinal <= 0) {
+      if (!produto.produto || produto.custo <= 0) {
         alert('Preencha o nome do produto e o custo antes de salvar.');
         return;
       }
@@ -484,11 +464,11 @@
 
       try {
         await enviarParaPlanilha(produto);
-        const historico = JSON.parse(localStorage.getItem('historicoPrecificacao') || '[]');
-        historico.push({ ...produto, atualizadoEm: new Date().toISOString() });
-        localStorage.setItem('historicoPrecificacao', JSON.stringify(historico.slice(-10)));
+        const historico = JSON.parse(localStorage.getItem('produtosSalvosSessao') || '[]');
+        historico.push({ ...produto, salvoEm: new Date().toISOString() });
+        localStorage.setItem('produtosSalvosSessao', JSON.stringify(historico.slice(-10)));
         carregarHistorico();
-        alert('Produto salvo na aba Produtos e registrado no Histórico.');
+        alert('Produto salvo na aba Produtos.');
       } catch (error) {
         console.error(error);
         alert('Erro ao salvar na planilha. Verifique o Worker e o Apps Script.');
