@@ -1,162 +1,241 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Precificação</title>
-
-<style>
-body {
-  font-family: Arial;
-  background:#e5e7eb;
-  margin:0;
-  padding:20px;
-}
-
-.card {
-  background:white;
-  padding:20px;
-  border-radius:12px;
-  margin-bottom:20px;
-}
-
-h2 {margin-top:0}
-
-input {
-  width:100%;
-  padding:10px;
-  margin-top:5px;
-  margin-bottom:10px;
-  border-radius:8px;
-  border:1px solid #ccc;
-}
-
-button {
-  padding:12px;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-  font-weight:bold;
-}
-
-.btn {
-  background:linear-gradient(135deg,#f67900,#5815ae);
-  color:white;
-}
-
-.metric {
-  margin:10px 0;
-}
-
-.big {
-  font-size:22px;
-  font-weight:bold;
-}
-
-.success {background:#16a34a;color:white;padding:10px;border-radius:10px}
-.warning {background:#f67900;color:white;padding:10px;border-radius:10px}
-.danger {background:#dc2626;color:white;padding:10px;border-radius:10px}
-
-</style>
-</head>
-
-<body>
-
-<div class="card">
-<h2>Precificação</h2>
-
-<label>Produto</label>
-<input id="produto">
-
-<label>Custo</label>
-<input id="custo" type="number" value="100">
-
-<label>Preço manual</label>
-<input id="precoManual" type="number">
-
-<label>Lucro %</label>
-<input id="lucro" type="number" value="20">
-
-<button class="btn" onclick="salvar()">Salvar produto</button>
-</div>
-
-<div class="card">
-<h2>Resultado</h2>
-
-<div class="metric">Preço sugerido: <span class="big" id="precoSugerido"></span></div>
-<div class="metric">Preço final: <span class="big" id="precoFinal"></span></div>
-<div class="metric">Pontos: <span class="big" id="pontos"></span></div>
-<div class="metric">Lucro líquido: <span class="big" id="lucroLiquido"></span></div>
-
-<div id="status"></div>
-</div>
-
 <script>
-const API = "https://precificacao-api.wesleisdsmh.workers.dev";
+const WORKER_URL = "https://precificacao-api.wesleisdsmh.workers.dev";
 
-function r2(v){return Math.round(v*100)/100}
+const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+const percent = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const inteiro = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
 
-function calcular(){
+const ids = [
+  'produto','custo','precoManual','lucroPadrao','pontosPorReal','gateway','imposto','sistema','fundo',
+  'n1','n2','n3','n4','n5','n6','n7','payoutMax','margemMin'
+];
 
-let custo = Number(document.getElementById("custo").value)||0
-let lucro = Number(document.getElementById("lucro").value)/100
-let precoManual = Number(document.getElementById("precoManual").value)||0
+const getNum = id => parseFloat(document.getElementById(id).value) || 0;
+const getText = id => document.getElementById(id).value.trim();
+const toRate = value => value / 100;
 
-let precoSugerido = r2(custo*(1+lucro))
-let precoFinal = r2(precoManual>0?precoManual:precoSugerido)
-
-let pontos = Math.floor(precoFinal*0.3)
-
-let lucroLiquido = r2(precoFinal - custo)
-
-document.getElementById("precoSugerido").innerText = "R$ "+precoSugerido.toFixed(2)
-document.getElementById("precoFinal").innerText = "R$ "+precoFinal.toFixed(2)
-document.getElementById("pontos").innerText = pontos
-document.getElementById("lucroLiquido").innerText = "R$ "+lucroLiquido.toFixed(2)
-
-let status = document.getElementById("status")
-
-if(lucroLiquido<=0){
-  status.className="danger"
-  status.innerText="Prejuízo"
-}else if(lucroLiquido<10){
-  status.className="warning"
-  status.innerText="Baixo lucro"
-}else{
-  status.className="success"
-  status.innerText="Saudável"
+function r2(valor) {
+  return Math.round((Number(valor) || 0) * 100) / 100;
 }
 
-return {
-produto:document.getElementById("produto").value,
-custo,
-precoSugerido,
-precoManual,
-precoFinal,
-lucroLiquido,
-pontos
-}
+function arredondarInteiro(valor) {
+  return Math.round(Number(valor) || 0);
 }
 
-async function salvar(){
+function calcular() {
+  const custo = r2(getNum('custo'));
+  const precoManualDigitado = document.getElementById('precoManual').value !== '';
+  const precoManual = r2(getNum('precoManual'));
 
-let data = calcular()
+  const lucroPadrao = toRate(getNum('lucroPadrao'));
+  const pontosPorReal = getNum('pontosPorReal');
 
-await fetch(API,{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify(data)
-})
+  const gateway = toRate(getNum('gateway'));
+  const imposto = toRate(getNum('imposto'));
+  const sistema = toRate(getNum('sistema'));
+  const fundo = toRate(getNum('fundo'));
 
-alert("Salvo na planilha")
+  const n1 = toRate(getNum('n1'));
+  const n2 = toRate(getNum('n2'));
+  const n3 = toRate(getNum('n3'));
+  const n4 = toRate(getNum('n4'));
+  const n5 = toRate(getNum('n5'));
+  const n6 = toRate(getNum('n6'));
+  const n7 = toRate(getNum('n7'));
+
+  const payoutMax = toRate(getNum('payoutMax'));
+  const margemMin = toRate(getNum('margemMin'));
+
+  const bonusUnilevelPercent = n1 + n2 + n3 + n4 + n5 + n6 + n7;
+
+  const denominador =
+    1 -
+    gateway -
+    imposto -
+    ((1 - gateway - imposto) * (bonusUnilevelPercent + fundo + sistema));
+
+  const precoSugerido = r2(
+    custo > 0 && denominador > 0
+      ? (custo * (1 + lucroPadrao)) / denominador
+      : 0
+  );
+
+  const precoFinal = r2(precoManualDigitado && precoManual > 0 ? precoManual : precoSugerido);
+
+  const baseLiquida = precoFinal * (1 - gateway - imposto);
+
+  const pontos = arredondarInteiro(precoFinal * pontosPorReal);
+
+  const fundoValor = r2(baseLiquida * fundo);
+  const bonusUnilevel = r2(baseLiquida * bonusUnilevelPercent);
+  const sistemaValor = r2(baseLiquida * sistema);
+
+  const n1Valor = r2(baseLiquida * n1);
+  const n2Valor = r2(baseLiquida * n2);
+  const n3Valor = r2(baseLiquida * n3);
+  const n4Valor = r2(baseLiquida * n4);
+  const n5Valor = r2(baseLiquida * n5);
+  const n6Valor = r2(baseLiquida * n6);
+  const n7Valor = r2(baseLiquida * n7);
+
+  const margemSobrePreco = precoFinal > 0 ? (precoFinal - custo) / precoFinal : 0;
+
+  const lucroLiquido = r2(
+    precoFinal -
+    custo -
+    (precoFinal * gateway) -
+    (precoFinal * imposto) -
+    bonusUnilevel -
+    fundoValor -
+    sistemaValor
+  );
+
+  const payoutTotal = r2(fundoValor + bonusUnilevel + sistemaValor);
+  const payoutPercent = precoFinal > 0 ? payoutTotal / precoFinal : 0;
+  const margemLiquida = precoFinal > 0 ? lucroLiquido / precoFinal : 0;
+
+  let statusClasse = 'success';
+  let statusTitulo = 'Saudável';
+  let statusTexto = 'Produto dentro da margem e payout aceitáveis.';
+
+  if (lucroLiquido < 0 || payoutPercent > payoutMax) {
+    statusClasse = 'danger';
+    statusTitulo = 'Risco';
+    statusTexto = 'Preço com risco financeiro. Reveja payout, margem ou custos.';
+  } else if (payoutPercent > 0.35 || margemLiquida < margemMin) {
+    statusClasse = 'warning';
+    statusTitulo = 'Atenção';
+    statusTexto = 'Produto viável, mas precisa de atenção nos indicadores.';
+  }
+
+  document.getElementById('precoSugerido').textContent = currency.format(precoSugerido);
+  document.getElementById('precoFinal').textContent = currency.format(precoFinal);
+  document.getElementById('pontosResumo').textContent = inteiro.format(pontos);
+  document.getElementById('lucroLiquido').textContent = currency.format(lucroLiquido);
+  document.getElementById('margemLiquida').textContent = percent.format(margemLiquida * 100) + '%';
+  document.getElementById('payoutTotal').textContent = currency.format(payoutTotal);
+  document.getElementById('payoutPercent').textContent = percent.format(payoutPercent * 100) + '%';
+
+  document.getElementById('pontos').textContent = inteiro.format(pontos);
+  document.getElementById('fundoValor').textContent = currency.format(fundoValor);
+  document.getElementById('bonusUnilevelValor').textContent = currency.format(bonusUnilevel);
+  document.getElementById('n1Valor').textContent = currency.format(n1Valor);
+  document.getElementById('n2Valor').textContent = currency.format(n2Valor);
+  document.getElementById('n3Valor').textContent = currency.format(n3Valor);
+  document.getElementById('n4Valor').textContent = currency.format(n4Valor);
+  document.getElementById('n5Valor').textContent = currency.format(n5Valor);
+  document.getElementById('n6Valor').textContent = currency.format(n6Valor);
+  document.getElementById('n7Valor').textContent = currency.format(n7Valor);
+
+  const statusBox = document.getElementById('statusBox');
+  const resultadoCard = document.getElementById('resultadoCard');
+
+  statusBox.className = 'status-box ' + statusClasse;
+  resultadoCard.className = 'card span-5 ' + statusClasse + '-border';
+  statusBox.innerHTML = `${statusTitulo}<small>${statusTexto}</small>`;
+
+  return {
+    destino: 'ProdutosEHistorico',
+    produto: getText('produto') || 'Sem nome',
+    custo,
+    precoSugerido,
+    precoManual: precoManualDigitado ? precoManual : '',
+    precoFinal,
+    margemSobrePreco,
+    lucroLiquido,
+    payoutTotal,
+    pontos,
+    fundoValor,
+    bonusUnilevel,
+    n1: n1Valor,
+    n2: n2Valor,
+    n3: n3Valor,
+    n4: n4Valor,
+    n5: n5Valor,
+    n6: n6Valor,
+    n7: n7Valor,
+    payoutPercent,
+    margemLiquida,
+    status: statusTitulo
+  };
 }
 
-document.querySelectorAll("input").forEach(i=>{
-i.addEventListener("input",calcular)
-})
+function carregarHistorico() {
+  const historico = JSON.parse(localStorage.getItem('historicoPrecificacao') || '[]');
+  const tbody = document.getElementById('historicoBody');
 
-calcular()
+  if (!historico.length) {
+    tbody.innerHTML = '<tr><td colspan="3" style="color:#6b7280;">Nenhum produto salvo ainda.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = historico.slice().reverse().map(item => `
+    <tr>
+      <td>${item.produto}</td>
+      <td>${currency.format(item.precoFinal || 0)}</td>
+      <td>${currency.format(item.lucroLiquido || 0)}</td>
+    </tr>
+  `).join('');
+}
+
+async function enviarParaPlanilha(payload) {
+  const response = await fetch(WORKER_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
+
+  return response.json().catch(() => ({ ok: true }));
+}
+
+document.getElementById('salvarProdutoBtn').addEventListener('click', async () => {
+  const produto = calcular();
+
+  if (!produto.produto || produto.produto === 'Sem nome' || produto.precoFinal <= 0) {
+    alert('Preencha o nome do produto e o custo antes de salvar.');
+    return;
+  }
+
+  const btn = document.getElementById('salvarProdutoBtn');
+  const textoOriginal = btn.textContent;
+
+  btn.textContent = 'Salvando...';
+  btn.disabled = true;
+
+  try {
+    await enviarParaPlanilha(produto);
+
+    const historico = JSON.parse(localStorage.getItem('historicoPrecificacao') || '[]');
+    historico.push({ ...produto, atualizadoEm: new Date().toISOString() });
+
+    localStorage.setItem('historicoPrecificacao', JSON.stringify(historico.slice(-10)));
+    carregarHistorico();
+
+    alert('Produto salvo na aba Produtos e registrado no Histórico.');
+  } catch (error) {
+    console.error(error);
+    alert('Erro ao salvar na planilha. Verifique o Worker e o Apps Script.');
+  } finally {
+    btn.textContent = textoOriginal;
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('limparBtn').addEventListener('click', () => {
+  document.getElementById('produto').value = '';
+  document.getElementById('custo').value = '0';
+  document.getElementById('precoManual').value = '';
+  calcular();
+});
+
+ids.forEach(id => {
+  document.getElementById(id).addEventListener('input', calcular);
+});
+
+calcular();
+carregarHistorico();
 </script>
-
-</body>
-</html>
